@@ -472,8 +472,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    padding: 16px;
+    gap: 10px;
+    padding: 12px;
     overflow-y: auto;
     user-select: none;
     -webkit-user-select: none;
@@ -482,8 +482,8 @@
   }
   #boss-modal.open { display: flex; }
   .boss-bar {
-    width: min(90vw, 420px);
-    height: 18px;
+    width: min(94vw, 640px);
+    height: 16px;
     background: #222;
     border: 2px solid #fff;
   }
@@ -495,27 +495,28 @@
   }
   #boss-hp-fill { background: #e0451f; }
   #boss-me-fill { background: var(--teal); }
-  #boss-stage { width: min(70vw, 220px); transition: transform 0.12s; }
-  #boss-stage svg { width: 100%; display: block; }
-  #boss-stage.windup { transform: rotate(-12deg) scale(1.08); filter: drop-shadow(0 0 18px #ff2b2b); }
-  #boss-stage.swing { transform: rotate(10deg) translateY(30px) scale(1.15); }
-  #boss-stage.hit { filter: brightness(2.5); }
-  #boss-msg { min-height: 1.4em; font-size: 22px; letter-spacing: 2px; }
-  #boss-actions { display: flex; gap: 12px; }
-  #boss-actions button {
+  #boss-canvas {
+    width: min(94vw, 640px);
+    aspect-ratio: 16 / 9;
+    background: #120a24;
+    border: 2px solid var(--teal);
+    touch-action: none;
+  }
+  #boss-msg { min-height: 1.3em; font-size: 22px; letter-spacing: 2px; }
+  #boss-touch { display: flex; gap: 10px; }
+  #boss-touch button, #boss-close {
     background-color: var(--teal);
     color: #fff;
     border: none;
-    padding: 12px 26px;
+    padding: 10px 22px;
     font-family: inherit;
     font-size: 20px;
     letter-spacing: 2px;
     text-transform: uppercase;
     cursor: pointer;
+    touch-action: none;
   }
-  #boss-dodge { background-color: var(--purple) !important; }
-  #boss-actions button:disabled { opacity: 0.4; cursor: default; }
-  #boss-hint { font-size: 14px; opacity: 0.7; max-width: 420px; }
+  #boss-hint { font-size: 14px; opacity: 0.7; max-width: 640px; }
 </style>
 </head>
 <body>
@@ -726,30 +727,16 @@
   <div id="boss-modal">
     <div id="boss-name">TUNG TUNG TUNG SAHUR</div>
     <div class="boss-bar"><i id="boss-hp-fill"></i></div>
-    <div id="boss-stage">
-      <svg viewBox="0 0 200 260">
-        <rect x="150" y="20" width="16" height="150" rx="8" fill="#8a5a2b" stroke="#000" stroke-width="3" transform="rotate(14 158 95)"/>
-        <rect x="55" y="40" width="90" height="170" rx="40" fill="#c58b4e" stroke="#000" stroke-width="4"/>
-        <path d="M70 90 Q100 75 130 90 M70 140 Q100 125 130 140 M70 180 Q100 165 130 180" stroke="#8a5a2b" stroke-width="3" fill="none"/>
-        <circle cx="82" cy="75" r="14" fill="#fff" stroke="#000" stroke-width="3"/>
-        <circle cx="118" cy="75" r="14" fill="#fff" stroke="#000" stroke-width="3"/>
-        <circle cx="85" cy="77" r="6" fill="#000"/>
-        <circle cx="115" cy="77" r="6" fill="#000"/>
-        <ellipse cx="100" cy="115" rx="16" ry="11" fill="#5a1a10" stroke="#000" stroke-width="3"/>
-        <rect x="45" y="110" width="14" height="70" rx="7" fill="#c58b4e" stroke="#000" stroke-width="3"/>
-        <rect x="141" y="110" width="14" height="60" rx="7" fill="#c58b4e" stroke="#000" stroke-width="3"/>
-        <rect x="72" y="205" width="16" height="45" rx="7" fill="#c58b4e" stroke="#000" stroke-width="3"/>
-        <rect x="112" y="205" width="16" height="45" rx="7" fill="#c58b4e" stroke="#000" stroke-width="3"/>
-      </svg>
-    </div>
+    <canvas id="boss-canvas" width="640" height="360"></canvas>
     <div id="boss-msg"></div>
     <div class="boss-bar"><i id="boss-me-fill"></i></div>
-    <div id="boss-actions">
-      <button id="boss-attack">Attack</button>
-      <button id="boss-dodge">Dodge</button>
+    <div id="boss-touch">
+      <button id="boss-left">&#9664;</button>
+      <button id="boss-jump">Jump</button>
+      <button id="boss-right">&#9654;</button>
       <button id="boss-close">Close</button>
     </div>
-    <div id="boss-hint">Attack (Space / A) to hurt him. When he raises the bat, press Dodge (D) before it lands. Dodging when he is not attacking costs you HP.</div>
+    <div id="boss-hint">Move with arrow keys or A / D, jump with Space, W or Up. Land on his head to hurt him. Dodge his dash, and jump over the shockwaves from his bat.</div>
   </div>
 
   <script>
@@ -1156,105 +1143,251 @@
   </script>
   <script>
     (function () {
+      var W = 640, H = 360, GROUND = 300;
       var modal = document.getElementById('boss-modal');
-      var stage = document.getElementById('boss-stage');
+      var cv = document.getElementById('boss-canvas');
+      var ctx = cv.getContext('2d');
       var msg = document.getElementById('boss-msg');
       var bossFill = document.getElementById('boss-hp-fill');
       var meFill = document.getElementById('boss-me-fill');
-      var atkBtn = document.getElementById('boss-attack');
-      var dodgeBtn = document.getElementById('boss-dodge');
-      var bossHp, meHp, over, state, timer, dodged, atkReady;
+      var keys = {};
+      var touch = { left: false, right: false };
+      var pl, boss, waves, over, last, raf, msgTimer;
 
-      function render() {
-        bossFill.style.width = Math.max(0, bossHp) + '%';
-        meFill.style.width = Math.max(0, meHp) + '%';
+      function say(t, ms) {
+        msg.textContent = t;
+        clearTimeout(msgTimer);
+        if (ms) msgTimer = setTimeout(function () { if (!over) msg.textContent = ''; }, ms);
       }
-      function flash(cls) {
-        stage.classList.add(cls);
-        setTimeout(function () { stage.classList.remove(cls); }, 150);
+      function bars() {
+        bossFill.style.width = Math.max(0, boss.hp) + '%';
+        meFill.style.width = Math.max(0, pl.hp) + '%';
+      }
+      function reset() {
+        pl = { x: 100, y: GROUND - 40, w: 28, h: 40, vx: 0, vy: 0, hp: 100, inv: 0, face: 1, ground: true };
+        boss = { x: 470, y: GROUND - 110, w: 70, h: 110, hp: 100, state: 'chase', t: 1.5, dir: -1, inv: 0, next: 'dash' };
+        waves = [];
+        over = false;
+        say('Jump on his head!', 2000);
+        bars();
       }
       function end(win) {
         over = true;
-        clearTimeout(timer);
-        atkBtn.disabled = dodgeBtn.disabled = true;
-        msg.textContent = win ? 'TUNG TUNG TUNG SAHUR IS DEFEATED! YOU WIN!' : 'You got smashed. Game over.';
+        say(win ? 'YOU WIN! Tung Tung Tung Sahur is defeated! (press Enter to fight again)'
+                : 'You got smashed. (press Enter to try again)');
       }
-      function nextAttack() {
-        if (over) return;
-        state = 'idle';
-        timer = setTimeout(windup, 1200 + Math.random() * 1500);
+      function hurt(dmg, from) {
+        if (pl.inv > 0 || over) return;
+        pl.hp -= dmg;
+        pl.inv = 1;
+        pl.vy = -300;
+        pl.vx = (pl.x < from ? -1 : 1) * 260;
+        pl.ground = false;
+        bars();
+        if (pl.hp <= 0) end(false);
       }
-      function windup() {
-        if (over) return;
-        state = 'windup';
-        dodged = false;
-        stage.classList.add('windup');
-        msg.textContent = 'TUNG TUNG TUNG... DODGE!';
-        timer = setTimeout(strike, 650);
-      }
-      function strike() {
-        if (over) return;
-        stage.classList.remove('windup');
-        stage.classList.add('swing');
-        setTimeout(function () { stage.classList.remove('swing'); }, 200);
-        if (dodged) {
-          msg.textContent = 'Dodged!';
-        } else {
-          meHp -= 20;
-          msg.textContent = 'SAHUR!! -20 HP';
+      function setState(st, t) { boss.state = st; boss.t = t; }
+
+      function updateBoss(dt) {
+        boss.t -= dt;
+        if (boss.inv > 0) boss.inv -= dt;
+        var cx = pl.x + pl.w / 2 - (boss.x + boss.w / 2);
+        if (boss.state === 'chase') {
+          boss.dir = cx < 0 ? -1 : 1;
+          boss.x += boss.dir * 80 * dt;
+          if (boss.t <= 0) { boss.next = Math.random() < 0.5 ? 'dash' : 'slam'; setState('telegraph', 0.7); say('TUNG TUNG TUNG...'); }
+        } else if (boss.state === 'telegraph') {
+          if (boss.t <= 0) {
+            if (boss.next === 'dash') { setState('dash', 0.7); }
+            else {
+              setState('rest', 0.9);
+              var cxb = boss.x + boss.w / 2;
+              waves.push({ x: cxb, v: -260 }, { x: cxb, v: 260 });
+            }
+          }
+        } else if (boss.state === 'dash') {
+          boss.x += boss.dir * 430 * dt;
+          if (boss.x < 0) { boss.x = 0; boss.t = 0; }
+          if (boss.x + boss.w > W) { boss.x = W - boss.w; boss.t = 0; }
+          if (boss.t <= 0) setState('rest', 0.9);
+        } else if (boss.state === 'rest') {
+          if (boss.t <= 0) setState('chase', 1.2 + Math.random() * 1.2);
         }
-        render();
-        if (meHp <= 0) return end(false);
-        nextAttack();
       }
-      function attack() {
-        if (over || !atkReady) return;
-        atkReady = false;
-        atkBtn.disabled = true;
-        setTimeout(function () { atkReady = true; if (!over) atkBtn.disabled = false; }, 350);
-        bossHp -= 6 + Math.floor(Math.random() * 5);
-        flash('hit');
-        if (state !== 'windup') msg.textContent = 'Hit!';
-        render();
-        if (bossHp <= 0) end(true);
-      }
-      function dodge() {
+
+      function update(dt) {
         if (over) return;
-        if (state === 'windup') {
-          dodged = true;
-        } else {
-          meHp -= 5;
-          msg.textContent = 'Dodged too early and tripped! -5 HP';
-          render();
-          if (meHp <= 0) end(false);
+        var move = 0;
+        if (keys.left || touch.left) move -= 1;
+        if (keys.right || touch.right) move += 1;
+        if (pl.inv > 0) pl.inv -= dt;
+        var target = move * 230;
+        pl.vx += (target - pl.vx) * Math.min(1, 12 * dt);
+        if (move) pl.face = move;
+        if (keys.jump && pl.ground) { pl.vy = -700; pl.ground = false; }
+        var prevBottom = pl.y + pl.h;
+        pl.vy += 1800 * dt;
+        pl.x += pl.vx * dt;
+        pl.y += pl.vy * dt;
+        if (pl.x < 0) pl.x = 0;
+        if (pl.x + pl.w > W) pl.x = W - pl.w;
+        if (pl.y + pl.h >= GROUND) { pl.y = GROUND - pl.h; pl.vy = 0; pl.ground = true; }
+
+        updateBoss(dt);
+        if (over) return;
+
+        // boss collision
+        var ov = pl.x < boss.x + boss.w && pl.x + pl.w > boss.x &&
+                 pl.y < boss.y + boss.h && pl.y + pl.h > boss.y;
+        if (ov) {
+          if (pl.vy > 0 && prevBottom <= boss.y + 24) {
+            pl.vy = -520;
+            pl.y = boss.y - pl.h;
+            if (boss.inv <= 0) {
+              boss.hp -= 10;
+              boss.inv = 0.5;
+              say('STOMP!', 800);
+              bars();
+              if (boss.hp <= 0) return end(true);
+            }
+          } else {
+            hurt(15, boss.x + boss.w / 2);
+          }
         }
+        // shockwaves
+        for (var i = waves.length - 1; i >= 0; i--) {
+          var w = waves[i];
+          w.x += w.v * dt;
+          if (w.x < -30 || w.x > W + 30) { waves.splice(i, 1); continue; }
+          var wl = w.x - 12, wt = GROUND - 30;
+          if (pl.x < wl + 24 && pl.x + pl.w > wl && pl.y + pl.h > wt) hurt(12, w.x);
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#2a1650';
+        ctx.fillRect(0, GROUND, W, H - GROUND);
+        ctx.fillStyle = '#00c9b7';
+        ctx.fillRect(0, GROUND, W, 4);
+
+        // shockwaves
+        ctx.fillStyle = '#ffb347';
+        waves.forEach(function (w) {
+          ctx.beginPath();
+          ctx.moveTo(w.x - 12, GROUND);
+          ctx.lineTo(w.x, GROUND - 30);
+          ctx.lineTo(w.x + 12, GROUND);
+          ctx.fill();
+        });
+
+        // boss
+        var bx = boss.x, by = boss.y;
+        var flash = boss.inv > 0 && Math.floor(boss.inv * 20) % 2 === 0;
+        var red = boss.state === 'telegraph';
+        ctx.save();
+        if (red) { ctx.shadowColor = '#ff2b2b'; ctx.shadowBlur = 24; }
+        // bat
+        ctx.save();
+        ctx.translate(bx + boss.w / 2 + boss.dir * 38, by + 50);
+        ctx.rotate(boss.dir * (red ? -0.9 : 0.4));
+        ctx.fillStyle = '#8a5a2b';
+        ctx.fillRect(-5, -60, 10, 70);
+        ctx.restore();
+        ctx.fillStyle = flash ? '#fff' : (red ? '#e07a4e' : '#c58b4e');
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(bx, by, boss.w, boss.h, 28); else ctx.rect(bx, by, boss.w, boss.h);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+        ctx.strokeStyle = '#8a5a2b';
+        ctx.beginPath();
+        ctx.moveTo(bx + 8, by + 40); ctx.quadraticCurveTo(bx + 35, by + 32, bx + 62, by + 40);
+        ctx.moveTo(bx + 8, by + 80); ctx.quadraticCurveTo(bx + 35, by + 72, bx + 62, by + 80);
+        ctx.stroke();
+        // face
+        var ex = boss.dir * 3;
+        [bx + 20, bx + 50].forEach(function (x) {
+          ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, by + 28, 9, 0, 7); ctx.fill();
+          ctx.lineWidth = 2; ctx.stroke();
+          ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(x + ex, by + 29, 4, 0, 7); ctx.fill();
+        });
+        ctx.fillStyle = '#5a1a10';
+        ctx.beginPath(); ctx.ellipse(bx + 35, by + 55, 10, 7, 0, 0, 7); ctx.fill();
+
+        // player (axolotl-ish)
+        if (!(pl.inv > 0 && Math.floor(pl.inv * 20) % 2 === 0)) {
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = '#000';
+          ctx.fillStyle = '#f7a8c4';
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(pl.x, pl.y, pl.w, pl.h, 10); else ctx.rect(pl.x, pl.y, pl.w, pl.h);
+          ctx.fill();
+          ctx.stroke();
+          ctx.strokeStyle = '#ff2bd6';
+          ctx.beginPath();
+          ctx.moveTo(pl.x, pl.y + 8); ctx.lineTo(pl.x - 8, pl.y + 4);
+          ctx.moveTo(pl.x, pl.y + 14); ctx.lineTo(pl.x - 8, pl.y + 14);
+          ctx.moveTo(pl.x + pl.w, pl.y + 8); ctx.lineTo(pl.x + pl.w + 8, pl.y + 4);
+          ctx.moveTo(pl.x + pl.w, pl.y + 14); ctx.lineTo(pl.x + pl.w + 8, pl.y + 14);
+          ctx.stroke();
+          ctx.fillStyle = '#000';
+          var px = pl.face * 3;
+          ctx.beginPath(); ctx.arc(pl.x + 9 + px, pl.y + 14, 3, 0, 7); ctx.fill();
+          ctx.beginPath(); ctx.arc(pl.x + 19 + px, pl.y + 14, 3, 0, 7); ctx.fill();
+        }
+      }
+
+      function loop(ts) {
+        if (!modal.classList.contains('open')) return;
+        var dt = Math.min(0.033, (ts - last) / 1000 || 0);
+        last = ts;
+        update(dt);
+        draw();
+        raf = requestAnimationFrame(loop);
       }
       function start() {
-        bossHp = 100; meHp = 100; over = false; atkReady = true;
-        atkBtn.disabled = dodgeBtn.disabled = false;
-        stage.className = '';
-        msg.textContent = 'Fight!';
-        render();
+        reset();
         modal.classList.add('open');
-        clearTimeout(timer);
-        nextAttack();
+        cancelAnimationFrame(raf);
+        last = performance.now();
+        raf = requestAnimationFrame(loop);
       }
       function close() {
-        clearTimeout(timer);
-        over = true;
         modal.classList.remove('open');
+        cancelAnimationFrame(raf);
+        keys = {};
+        touch.left = touch.right = false;
       }
-      document.getElementById('boss-btn').addEventListener('click', start);
-      document.getElementById('boss-close').addEventListener('click', close);
-      atkBtn.addEventListener('click', attack);
-      dodgeBtn.addEventListener('click', dodge);
+
+      var map = {
+        arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right',
+        arrowup: 'jump', w: 'jump', ' ': 'jump'
+      };
       document.addEventListener('keydown', function (e) {
         if (!modal.classList.contains('open')) return;
         var k = e.key.toLowerCase();
-        if (k === ' ' || k === 'a') { e.preventDefault(); attack(); }
-        else if (k === 'd') { dodge(); }
-        else if (k === 'escape') { close(); }
+        if (k === 'escape') return close();
+        if (k === 'enter' && over) { start(); return; }
+        if (map[k]) { e.preventDefault(); keys[map[k]] = true; }
       });
+      document.addEventListener('keyup', function (e) {
+        var k = e.key.toLowerCase();
+        if (map[k]) keys[map[k]] = false;
+      });
+      function hold(id, on, off) {
+        var el = document.getElementById(id);
+        el.addEventListener('pointerdown', function (e) { e.preventDefault(); on(); });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) { el.addEventListener(ev, off); });
+      }
+      hold('boss-left', function () { touch.left = true; }, function () { touch.left = false; });
+      hold('boss-right', function () { touch.right = true; }, function () { touch.right = false; });
+      hold('boss-jump', function () { keys.jump = true; }, function () { keys.jump = false; });
+      document.getElementById('boss-btn').addEventListener('click', start);
+      document.getElementById('boss-close').addEventListener('click', close);
+      cv.addEventListener('click', function () { if (over) start(); });
     })();
   </script>
 </body>
