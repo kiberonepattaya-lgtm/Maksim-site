@@ -79,6 +79,14 @@
     border-bottom: 2px solid rgba(var(--pink-rgb), 0.6);
     box-shadow: 0 6px 30px rgba(var(--pink-rgb), 0.35);
   }
+  .title-wrap { display: flex; flex-direction: column; }
+  .motto {
+    margin: 4px 0 0;
+    font-size: 20px;
+    letter-spacing: 3px;
+    color: var(--teal);
+    text-shadow: 0 0 10px rgba(var(--teal-rgb), 0.8);
+  }
   header h1 {
     margin: 0;
     font-size: 54px;
@@ -642,7 +650,10 @@
   </div>
 
   <header>
-    <h1>Maksim</h1>
+    <div class="title-wrap">
+      <h1>Maksim</h1>
+      <p class="motto">Swim fast, run far, never stop.</p>
+    </div>
     <nav>
       <a href="#about">About</a>
       <a href="#hobbies">Hobbies</a>
