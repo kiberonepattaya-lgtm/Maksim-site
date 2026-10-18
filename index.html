@@ -314,7 +314,8 @@
   #ratotype-btn,
   #boss-btn,
   #gd-btn,
-  #gg-btn {
+  #gg-btn,
+  #se-btn {
     margin-left: 12px;
   }
   .cat-wrap {
@@ -342,6 +343,7 @@
   #boss-btn,
   #gd-btn,
   #gg-btn,
+  #se-btn,
   #cat-btn {
     background-color: var(--teal);
     color: #fff;
@@ -662,6 +664,40 @@
   #gg-inv button.sel { background-color: var(--teal) !important; }
   #gg-pad { display: flex; gap: 6px; align-items: center; }
   #gg-hint { font-size: 13px; opacity: 0.7; max-width: 900px; }
+  #se-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2400;
+    background: rgba(5, 1, 13, 0.96);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px;
+    overflow-y: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    color: #fff;
+    text-align: center;
+  }
+  #se-modal.open { display: flex; }
+  #se-hud { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 20px; letter-spacing: 2px; align-items: center; justify-content: center; }
+  #se-coins { color: #ffe14a; }
+  #se-canvas {
+    width: min(96vw, 800px);
+    aspect-ratio: 16 / 9;
+    border: 2px solid var(--teal);
+    touch-action: none;
+  }
+  #se-modal button {
+    background-color: var(--teal); color: #fff; border: none; padding: 8px 16px;
+    font-family: inherit; font-size: 17px; letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; touch-action: none;
+  }
+  #se-modal button:disabled { opacity: 0.4; cursor: default; }
+  #se-pad { display: flex; gap: 6px; align-items: center; }
+  #se-hint { font-size: 13px; opacity: 0.7; max-width: 800px; }
 </style>
 </head>
 <body>
@@ -739,6 +775,7 @@
       <button id="boss-btn">67</button>
       <button id="gd-btn">GEOMETRY DASH</button>
       <button id="gg-btn">GROW A GARDEN</button>
+      <button id="se-btn">STEAL AN EGG</button>
       <div id="axolotl-result">
         <svg width="200" height="160" viewBox="0 0 200 160">
           <ellipse cx="100" cy="100" rx="70" ry="45" fill="#f7a8c4" stroke="black" stroke-width="3"/>
@@ -928,6 +965,23 @@
       <button id="gg-close">Close</button>
     </div>
     <div id="gg-hint">Walk with WASD / arrow keys. Press E near a plot to plant the selected seed or harvest a ripe crop, near the SHOP to buy seeds, and near the SELL stand to sell your crops. Keys 1&ndash;5 pick a seed.</div>
+  </div>
+
+  <div id="se-modal">
+    <div id="se-hud">
+      <span id="se-coins"></span>
+      <span id="se-speed"></span>
+      <button id="se-up">Upgrade speed</button>
+    </div>
+    <canvas id="se-canvas" width="800" height="450"></canvas>
+    <div id="se-pad">
+      <button id="se-left">&#9664;</button>
+      <button id="se-upk">&#9650;</button>
+      <button id="se-down">&#9660;</button>
+      <button id="se-right">&#9654;</button>
+      <button id="se-close">Close</button>
+    </div>
+    <div id="se-hint">Move with WASD / arrow keys. Walk over an egg to steal it, then run back to the safe HOME area on the left to keep it. The further you go the better the egg &ndash; but its guardian is faster too. Buy speed upgrades with your coins (U). Esc to close.</div>
   </div>
 
   <script>
@@ -2240,6 +2294,327 @@
       document.getElementById('gg-shop-close').addEventListener('click', function () { setShop(false); });
       document.getElementById('gg-btn').addEventListener('click', start);
       window.addEventListener('resize', resize);
+    })();
+  </script>
+  <script>
+    (function () {
+      var W = 800, H = 450, WORLD_W = 3900, WORLD_H = 900, SAFE_W = 300, ZW = 600;
+      var SAVE_KEY = 'seSave1';
+      var TIERS = [
+        { name: 'Common',    color: '#f2e9d0', val: 12,   gs: 100, zone: 'Meadow',  bg: '#4a9d4a' },
+        { name: 'Uncommon',  color: '#8fe38f', val: 40,   gs: 150, zone: 'Forest',  bg: '#2f7d3a' },
+        { name: 'Rare',      color: '#6aa8ff', val: 120,  gs: 200, zone: 'Desert',  bg: '#c9ab62' },
+        { name: 'Epic',      color: '#c46aff', val: 350,  gs: 255, zone: 'Swamp',   bg: '#3b5e4f' },
+        { name: 'Legendary', color: '#ffb020', val: 1000, gs: 310, zone: 'Volcano', bg: '#7a2e1e' },
+        { name: 'Mythic',    color: '#ff4fd8', val: 3500, gs: 370, zone: 'Void',    bg: '#1a1030' }
+      ];
+      var MAX_LVL = 12;
+      var modal = document.getElementById('se-modal');
+      var cv = document.getElementById('se-canvas');
+      var ctx = cv.getContext('2d');
+      var coinsEl = document.getElementById('se-coins');
+      var speedEl = document.getElementById('se-speed');
+      var upBtn = document.getElementById('se-up');
+
+      var save = load();
+      var keys = {};
+      var pl, eggs, rocks, carry, msg, msgT, raf, last, built = false;
+
+      function load() {
+        try {
+          var d = JSON.parse(localStorage.getItem(SAVE_KEY));
+          if (d && typeof d.coins === 'number') return d;
+        } catch (e) {}
+        return { coins: 0, lvl: 0, got: [0, 0, 0, 0, 0, 0] };
+      }
+      function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
+      function speed() { return 140 + 22 * save.lvl; }
+      function cost() { return Math.round(25 * Math.pow(1.65, save.lvl)); }
+      function say(t) { msg = t; msgT = 2.2; }
+      function rng(seed) {
+        return function () {
+          seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+          var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+          t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+          return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+      }
+      function renderHud() {
+        coinsEl.textContent = '$' + Math.floor(save.coins).toLocaleString();
+        speedEl.textContent = 'Speed level ' + save.lvl + ' (' + speed() + ')';
+        if (save.lvl >= MAX_LVL) { upBtn.textContent = 'Max speed'; upBtn.disabled = true; }
+        else { upBtn.textContent = 'Upgrade speed $' + cost().toLocaleString(); upBtn.disabled = save.coins < cost(); }
+      }
+      function upgrade() {
+        if (save.lvl >= MAX_LVL || save.coins < cost()) return;
+        save.coins -= cost();
+        save.lvl++;
+        persist(); renderHud();
+        say('Speed upgraded to level ' + save.lvl + '!');
+      }
+
+      function buildWorld() {
+        var r = rng(1234);
+        eggs = [];
+        TIERS.forEach(function (t, ti) {
+          for (var i = 0; i < 3; i++) {
+            var ex = SAFE_W + ti * ZW + 140 + i * 150 + r() * 40;
+            var ey = 120 + r() * (WORLD_H - 240);
+            eggs.push({ tier: ti, x: ex, y: ey, taken: false, timer: 0,
+              g: { x: ex + 40, y: ey, hx: ex + 40, hy: ey, r: 16 + ti * 4, active: false, delay: 0 } });
+          }
+        });
+        rocks = [];
+        var tries = 0;
+        while (rocks.length < 70 && tries++ < 2000) {
+          var rx = SAFE_W + 120 + r() * (WORLD_W - SAFE_W - 160);
+          var ry = 40 + r() * (WORLD_H - 80);
+          var rr = 16 + r() * 22;
+          var ok = eggs.every(function (e) { return Math.hypot(e.x - rx, e.y - ry) > rr + 80; });
+          if (ok) rocks.push({ x: rx, y: ry, r: rr });
+        }
+        built = true;
+      }
+      function resetPlayer() { pl = { x: 150, y: WORLD_H / 2, r: 14, face: 1 }; }
+      function start() {
+        if (!built) buildWorld();
+        eggs.forEach(function (e) { e.taken = false; e.timer = 0; e.g.active = false; e.g.x = e.g.hx; e.g.y = e.g.hy; });
+        carry = null;
+        resetPlayer();
+        msg = ''; msgT = 0; keys = {};
+        modal.classList.add('open');
+        renderHud();
+        cancelAnimationFrame(raf);
+        last = performance.now();
+        raf = requestAnimationFrame(loop);
+      }
+      function close() {
+        modal.classList.remove('open');
+        cancelAnimationFrame(raf);
+        keys = {};
+      }
+
+      function pushOut(o, rad) {
+        rocks.forEach(function (k) {
+          var dx = o.x - k.x, dy = o.y - k.y, d = Math.hypot(dx, dy), m = k.r + rad;
+          if (d < m && d > 0.001) { o.x = k.x + dx / d * m; o.y = k.y + dy / d * m; }
+        });
+      }
+      function lose() {
+        var e = carry;
+        e.taken = false;
+        e.g.active = false;
+        e.g.x = e.g.hx; e.g.y = e.g.hy;
+        carry = null;
+        resetPlayer();
+        say('The guardian caught you! You lost the egg.');
+      }
+
+      function update(dt) {
+        var mx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+        var my = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+        if (mx || my) {
+          var l = Math.hypot(mx, my);
+          pl.x += mx / l * speed() * dt;
+          pl.y += my / l * speed() * dt;
+          if (mx) pl.face = mx;
+        }
+        pl.x = Math.max(pl.r, Math.min(WORLD_W - pl.r, pl.x));
+        pl.y = Math.max(pl.r, Math.min(WORLD_H - pl.r, pl.y));
+        pushOut(pl, pl.r);
+        if (msgT > 0) msgT -= dt;
+
+        eggs.forEach(function (e) {
+          if (e.taken && e !== carry) {
+            e.timer -= dt;
+            if (e.timer <= 0) e.taken = false;
+          }
+          // pick up
+          if (!carry && !e.taken && Math.hypot(e.x - pl.x, e.y - pl.y) < pl.r + 12) {
+            carry = e;
+            e.taken = true;
+            e.g.active = true;
+            e.g.delay = 0.6;
+            say('You stole a ' + TIERS[e.tier].name + ' egg! RUN HOME!');
+          }
+        });
+        // guardian
+        if (carry) {
+          var g = carry.g;
+          if (g.delay > 0) g.delay -= dt;
+          else {
+            var dx = pl.x - g.x, dy = pl.y - g.y, d = Math.hypot(dx, dy) || 1;
+            var sp = TIERS[carry.tier].gs;
+            g.x += dx / d * sp * dt;
+            g.y += dy / d * sp * dt;
+            pushOut(g, g.r);
+            if (g.x < SAFE_W + g.r) g.x = SAFE_W + g.r;   // cannot enter home
+          }
+          if (pl.x < SAFE_W - 20) {
+            var t = TIERS[carry.tier];
+            save.coins += t.val;
+            save.got[carry.tier]++;
+            persist(); renderHud();
+            say('Stolen! +$' + t.val + ' for the ' + t.name + ' egg.');
+            carry.timer = 15;
+            carry.g.active = false;
+            carry.g.x = carry.g.hx; carry.g.y = carry.g.hy;
+            carry = null;
+          } else if (Math.hypot(g.x - pl.x, g.y - pl.y) < g.r + pl.r - 2 && g.delay <= 0) {
+            lose();
+          }
+        }
+        if (upBtn.disabled === (save.coins >= cost() && save.lvl < MAX_LVL)) renderHud();
+      }
+
+      function zoneIndex(x) { return x < SAFE_W ? -1 : Math.min(5, Math.floor((x - SAFE_W) / ZW)); }
+
+      function drawEgg(c, x, y, tier, sc) {
+        var t = TIERS[tier];
+        c.save();
+        c.translate(x, y);
+        c.scale(sc, sc);
+        c.fillStyle = t.color; c.strokeStyle = '#000'; c.lineWidth = 2;
+        c.beginPath(); c.ellipse(0, 0, 10, 13, 0, 0, 7); c.fill(); c.stroke();
+        c.fillStyle = 'rgba(0,0,0,0.25)';
+        c.beginPath(); c.arc(-3, -2, 2.2, 0, 7); c.arc(3, 4, 2.2, 0, 7); c.arc(2, -6, 1.6, 0, 7); c.fill();
+        c.restore();
+      }
+      function drawGuardian(c, g, tier, active, ts) {
+        c.save();
+        c.translate(g.x, g.y);
+        if (active) { c.shadowColor = '#ff2b2b'; c.shadowBlur = 20; }
+        c.fillStyle = active ? '#8a1010' : '#4a3a3a';
+        c.strokeStyle = '#000'; c.lineWidth = 3;
+        c.beginPath(); c.arc(0, 0, g.r, 0, 7); c.fill(); c.stroke();
+        c.shadowBlur = 0;
+        c.fillStyle = '#222';
+        c.beginPath();
+        c.moveTo(-g.r * 0.7, -g.r * 0.6); c.lineTo(-g.r * 0.5, -g.r * 1.4); c.lineTo(-g.r * 0.2, -g.r * 0.9);
+        c.moveTo(g.r * 0.7, -g.r * 0.6); c.lineTo(g.r * 0.5, -g.r * 1.4); c.lineTo(g.r * 0.2, -g.r * 0.9);
+        c.fill();
+        if (active) {
+          c.fillStyle = '#ffe14a';
+          c.fillRect(-g.r * 0.55, -g.r * 0.25, g.r * 0.4, g.r * 0.25);
+          c.fillRect(g.r * 0.15, -g.r * 0.25, g.r * 0.4, g.r * 0.25);
+          c.fillStyle = '#fff';
+          c.fillRect(-g.r * 0.4, g.r * 0.3, g.r * 0.8, g.r * 0.2);
+        } else {
+          c.fillStyle = '#fff'; c.font = 'bold 14px sans-serif'; c.textAlign = 'center';
+          c.fillText('z', 0, 5);
+        }
+        c.restore();
+      }
+
+      function draw(ts) {
+        var cx = Math.max(0, Math.min(WORLD_W - W, pl.x - W / 2));
+        var cy = Math.max(0, Math.min(WORLD_H - H, pl.y - H / 2));
+        ctx.save();
+        ctx.clearRect(0, 0, W, H);
+        ctx.translate(-cx, -cy);
+        // ground
+        ctx.fillStyle = '#d9c9a0'; ctx.fillRect(0, 0, SAFE_W, WORLD_H);
+        TIERS.forEach(function (t, i) {
+          ctx.fillStyle = t.bg; ctx.fillRect(SAFE_W + i * ZW, 0, ZW, WORLD_H);
+        });
+        ctx.strokeStyle = 'rgba(0,0,0,0.08)'; ctx.lineWidth = 1;
+        for (var gx = 0; gx <= WORLD_W; gx += 100) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, WORLD_H); ctx.stroke(); }
+        for (var gy = 0; gy <= WORLD_H; gy += 100) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(WORLD_W, gy); ctx.stroke(); }
+        // home border + labels
+        ctx.fillStyle = '#ffe14a'; ctx.fillRect(SAFE_W - 6, 0, 6, WORLD_H);
+        ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.font = 'bold 40px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('HOME', SAFE_W / 2, WORLD_H / 2 - 60);
+        ctx.font = '16px sans-serif';
+        ctx.fillText('safe zone', SAFE_W / 2, WORLD_H / 2 - 36);
+        TIERS.forEach(function (t, i) {
+          ctx.font = 'bold 28px sans-serif';
+          ctx.fillStyle = 'rgba(255,255,255,0.35)';
+          ctx.fillText(t.zone + ' - ' + t.name + ' eggs', SAFE_W + i * ZW + ZW / 2, 60);
+        });
+        // rocks
+        rocks.forEach(function (k) {
+          ctx.fillStyle = '#777'; ctx.strokeStyle = '#333'; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.arc(k.x, k.y, k.r, 0, 7); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = 'rgba(255,255,255,0.2)';
+          ctx.beginPath(); ctx.arc(k.x - k.r * 0.3, k.y - k.r * 0.3, k.r * 0.4, 0, 7); ctx.fill();
+        });
+        // eggs and guardians
+        eggs.forEach(function (e) {
+          if (!e.taken) {
+            ctx.fillStyle = 'rgba(0,0,0,0.25)';
+            ctx.beginPath(); ctx.ellipse(e.x, e.y + 14, 12, 4, 0, 0, 7); ctx.fill();
+            drawEgg(ctx, e.x, e.y + Math.sin(ts / 300 + e.x) * 2, e.tier, 1.2);
+          }
+          drawGuardian(ctx, e.g, e.tier, e.g.active && e.g.delay <= 0, ts);
+        });
+        // player
+        ctx.fillStyle = '#2b8cff'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(pl.x, pl.y, pl.r, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(pl.x - 4 + pl.face * 3, pl.y - 3, 3.5, 0, 7); ctx.arc(pl.x + 5 + pl.face * 3, pl.y - 3, 3.5, 0, 7); ctx.fill();
+        ctx.fillStyle = '#000';
+        ctx.beginPath(); ctx.arc(pl.x - 4 + pl.face * 4, pl.y - 3, 1.6, 0, 7); ctx.arc(pl.x + 5 + pl.face * 4, pl.y - 3, 1.6, 0, 7); ctx.fill();
+        if (carry) drawEgg(ctx, pl.x, pl.y - 28, carry.tier, 1.3);
+        ctx.restore();
+
+        // HUD overlay
+        ctx.textAlign = 'left';
+        ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(8, 8, 230, 30);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 15px sans-serif';
+        var zi = zoneIndex(pl.x);
+        ctx.fillText(zi < 0 ? 'HOME (safe)' : TIERS[zi].zone + ' - ' + Math.round(pl.x - SAFE_W) + 'm from home', 16, 28);
+        if (carry) {
+          var tr = TIERS[carry.tier];
+          ctx.fillStyle = (Math.floor(ts / 250) % 2) ? '#ff4040' : '#ffe14a';
+          ctx.textAlign = 'center'; ctx.font = 'bold 22px sans-serif';
+          ctx.fillText('RUN HOME! Guardian speed ' + tr.gs + ' vs yours ' + speed(), W / 2, 34);
+          // arrow to home
+          var ang = Math.atan2(WORLD_H / 2 - pl.y, 150 - pl.x);
+          ctx.save();
+          ctx.translate(W / 2 + Math.cos(ang) * 120, H / 2 + Math.sin(ang) * 120);
+          ctx.rotate(ang);
+          ctx.fillStyle = '#ffe14a';
+          ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-8, -9); ctx.lineTo(-8, 9); ctx.fill();
+          ctx.restore();
+        }
+        if (msgT > 0 && msg) {
+          ctx.textAlign = 'center'; ctx.font = 'bold 20px sans-serif';
+          ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(W / 2 - 280, H - 52, 560, 34);
+          ctx.fillStyle = '#fff'; ctx.fillText(msg, W / 2, H - 29);
+        }
+        ctx.textAlign = 'start';
+      }
+
+      function loop(ts) {
+        if (!modal.classList.contains('open')) return;
+        var dt = Math.min(0.05, (ts - last) / 1000 || 0);
+        last = ts;
+        update(dt);
+        draw(ts);
+        raf = requestAnimationFrame(loop);
+      }
+
+      var map = { arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right', arrowup: 'up', w: 'up', arrowdown: 'down', s: 'down' };
+      document.addEventListener('keydown', function (e) {
+        if (!modal.classList.contains('open')) return;
+        var k = e.key.toLowerCase();
+        if (k === 'escape') return close();
+        if (k === 'u') return upgrade();
+        if (map[k]) { e.preventDefault(); keys[map[k]] = true; }
+      });
+      document.addEventListener('keyup', function (e) {
+        var k = e.key.toLowerCase();
+        if (map[k]) keys[map[k]] = false;
+      });
+      function hold(id, name) {
+        var el = document.getElementById(id);
+        el.addEventListener('pointerdown', function (e) { e.preventDefault(); keys[name] = true; });
+        ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) { el.addEventListener(ev, function () { keys[name] = false; }); });
+      }
+      hold('se-left', 'left'); hold('se-right', 'right'); hold('se-upk', 'up'); hold('se-down', 'down');
+      upBtn.addEventListener('click', upgrade);
+      document.getElementById('se-close').addEventListener('click', close);
+      document.getElementById('se-btn').addEventListener('click', start);
     })();
   </script>
 </body>
