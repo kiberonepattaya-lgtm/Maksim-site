@@ -303,7 +303,8 @@
   #baby-shark-btn,
   #theme-btn,
   #cube-btn,
-  #ratotype-btn {
+  #ratotype-btn,
+  #boss-btn {
     margin-left: 12px;
   }
   .cat-wrap {
@@ -328,6 +329,7 @@
   #theme-btn,
   #cube-btn,
   #ratotype-btn,
+  #boss-btn,
   #cat-btn {
     background-color: var(--teal);
     color: #fff;
@@ -461,6 +463,59 @@
     z-index: -1;
     pointer-events: none;
   }
+  #boss-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2100;
+    background: rgba(5, 1, 13, 0.95);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 16px;
+    overflow-y: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    color: #fff;
+    text-align: center;
+  }
+  #boss-modal.open { display: flex; }
+  .boss-bar {
+    width: min(90vw, 420px);
+    height: 18px;
+    background: #222;
+    border: 2px solid #fff;
+  }
+  .boss-bar i {
+    display: block;
+    height: 100%;
+    width: 100%;
+    transition: width 0.15s;
+  }
+  #boss-hp-fill { background: #e0451f; }
+  #boss-me-fill { background: var(--teal); }
+  #boss-stage { width: min(70vw, 220px); transition: transform 0.12s; }
+  #boss-stage svg { width: 100%; display: block; }
+  #boss-stage.windup { transform: rotate(-12deg) scale(1.08); filter: drop-shadow(0 0 18px #ff2b2b); }
+  #boss-stage.swing { transform: rotate(10deg) translateY(30px) scale(1.15); }
+  #boss-stage.hit { filter: brightness(2.5); }
+  #boss-msg { min-height: 1.4em; font-size: 22px; letter-spacing: 2px; }
+  #boss-actions { display: flex; gap: 12px; }
+  #boss-actions button {
+    background-color: var(--teal);
+    color: #fff;
+    border: none;
+    padding: 12px 26px;
+    font-family: inherit;
+    font-size: 20px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  #boss-dodge { background-color: var(--purple) !important; }
+  #boss-actions button:disabled { opacity: 0.4; cursor: default; }
+  #boss-hint { font-size: 14px; opacity: 0.7; max-width: 420px; }
 </style>
 </head>
 <body>
@@ -532,6 +587,7 @@
       <button id="theme-btn">THEME</button>
       <button id="cube-btn">CUBE</button>
       <button id="ratotype-btn">RATOTYPE</button>
+      <button id="boss-btn">67</button>
       <div id="axolotl-result">
         <svg width="200" height="160" viewBox="0 0 200 160">
           <ellipse cx="100" cy="100" rx="70" ry="45" fill="#f7a8c4" stroke="black" stroke-width="3"/>
@@ -665,6 +721,35 @@
       <button id="cube-close">Close</button>
     </div>
     <div id="cube-hint">Drag to rotate the cube. Turn a face with the buttons or keys U D L R F B (hold Shift for the reverse turn).</div>
+  </div>
+
+  <div id="boss-modal">
+    <div id="boss-name">TUNG TUNG TUNG SAHUR</div>
+    <div class="boss-bar"><i id="boss-hp-fill"></i></div>
+    <div id="boss-stage">
+      <svg viewBox="0 0 200 260">
+        <rect x="150" y="20" width="16" height="150" rx="8" fill="#8a5a2b" stroke="#000" stroke-width="3" transform="rotate(14 158 95)"/>
+        <rect x="55" y="40" width="90" height="170" rx="40" fill="#c58b4e" stroke="#000" stroke-width="4"/>
+        <path d="M70 90 Q100 75 130 90 M70 140 Q100 125 130 140 M70 180 Q100 165 130 180" stroke="#8a5a2b" stroke-width="3" fill="none"/>
+        <circle cx="82" cy="75" r="14" fill="#fff" stroke="#000" stroke-width="3"/>
+        <circle cx="118" cy="75" r="14" fill="#fff" stroke="#000" stroke-width="3"/>
+        <circle cx="85" cy="77" r="6" fill="#000"/>
+        <circle cx="115" cy="77" r="6" fill="#000"/>
+        <ellipse cx="100" cy="115" rx="16" ry="11" fill="#5a1a10" stroke="#000" stroke-width="3"/>
+        <rect x="45" y="110" width="14" height="70" rx="7" fill="#c58b4e" stroke="#000" stroke-width="3"/>
+        <rect x="141" y="110" width="14" height="60" rx="7" fill="#c58b4e" stroke="#000" stroke-width="3"/>
+        <rect x="72" y="205" width="16" height="45" rx="7" fill="#c58b4e" stroke="#000" stroke-width="3"/>
+        <rect x="112" y="205" width="16" height="45" rx="7" fill="#c58b4e" stroke="#000" stroke-width="3"/>
+      </svg>
+    </div>
+    <div id="boss-msg"></div>
+    <div class="boss-bar"><i id="boss-me-fill"></i></div>
+    <div id="boss-actions">
+      <button id="boss-attack">Attack</button>
+      <button id="boss-dodge">Dodge</button>
+      <button id="boss-close">Close</button>
+    </div>
+    <div id="boss-hint">Attack (Space / A) to hurt him. When he raises the bat, press Dodge (D) before it lands. Dodging when he is not attacking costs you HP.</div>
   </div>
 
   <script>
@@ -1066,6 +1151,109 @@
           requestAnimationFrame(frame);
         }
         requestAnimationFrame(frame);
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      var modal = document.getElementById('boss-modal');
+      var stage = document.getElementById('boss-stage');
+      var msg = document.getElementById('boss-msg');
+      var bossFill = document.getElementById('boss-hp-fill');
+      var meFill = document.getElementById('boss-me-fill');
+      var atkBtn = document.getElementById('boss-attack');
+      var dodgeBtn = document.getElementById('boss-dodge');
+      var bossHp, meHp, over, state, timer, dodged, atkReady;
+
+      function render() {
+        bossFill.style.width = Math.max(0, bossHp) + '%';
+        meFill.style.width = Math.max(0, meHp) + '%';
+      }
+      function flash(cls) {
+        stage.classList.add(cls);
+        setTimeout(function () { stage.classList.remove(cls); }, 150);
+      }
+      function end(win) {
+        over = true;
+        clearTimeout(timer);
+        atkBtn.disabled = dodgeBtn.disabled = true;
+        msg.textContent = win ? 'TUNG TUNG TUNG SAHUR IS DEFEATED! YOU WIN!' : 'You got smashed. Game over.';
+      }
+      function nextAttack() {
+        if (over) return;
+        state = 'idle';
+        timer = setTimeout(windup, 1200 + Math.random() * 1500);
+      }
+      function windup() {
+        if (over) return;
+        state = 'windup';
+        dodged = false;
+        stage.classList.add('windup');
+        msg.textContent = 'TUNG TUNG TUNG... DODGE!';
+        timer = setTimeout(strike, 650);
+      }
+      function strike() {
+        if (over) return;
+        stage.classList.remove('windup');
+        stage.classList.add('swing');
+        setTimeout(function () { stage.classList.remove('swing'); }, 200);
+        if (dodged) {
+          msg.textContent = 'Dodged!';
+        } else {
+          meHp -= 20;
+          msg.textContent = 'SAHUR!! -20 HP';
+        }
+        render();
+        if (meHp <= 0) return end(false);
+        nextAttack();
+      }
+      function attack() {
+        if (over || !atkReady) return;
+        atkReady = false;
+        atkBtn.disabled = true;
+        setTimeout(function () { atkReady = true; if (!over) atkBtn.disabled = false; }, 350);
+        bossHp -= 6 + Math.floor(Math.random() * 5);
+        flash('hit');
+        if (state !== 'windup') msg.textContent = 'Hit!';
+        render();
+        if (bossHp <= 0) end(true);
+      }
+      function dodge() {
+        if (over) return;
+        if (state === 'windup') {
+          dodged = true;
+        } else {
+          meHp -= 5;
+          msg.textContent = 'Dodged too early and tripped! -5 HP';
+          render();
+          if (meHp <= 0) end(false);
+        }
+      }
+      function start() {
+        bossHp = 100; meHp = 100; over = false; atkReady = true;
+        atkBtn.disabled = dodgeBtn.disabled = false;
+        stage.className = '';
+        msg.textContent = 'Fight!';
+        render();
+        modal.classList.add('open');
+        clearTimeout(timer);
+        nextAttack();
+      }
+      function close() {
+        clearTimeout(timer);
+        over = true;
+        modal.classList.remove('open');
+      }
+      document.getElementById('boss-btn').addEventListener('click', start);
+      document.getElementById('boss-close').addEventListener('click', close);
+      atkBtn.addEventListener('click', attack);
+      dodgeBtn.addEventListener('click', dodge);
+      document.addEventListener('keydown', function (e) {
+        if (!modal.classList.contains('open')) return;
+        var k = e.key.toLowerCase();
+        if (k === ' ' || k === 'a') { e.preventDefault(); attack(); }
+        else if (k === 'd') { dodge(); }
+        else if (k === 'escape') { close(); }
       });
     })();
   </script>
