@@ -504,7 +504,7 @@
   }
   #boss-msg { min-height: 1.3em; font-size: 22px; letter-spacing: 2px; }
   #boss-touch { display: flex; gap: 10px; }
-  #boss-touch button, #boss-close {
+  #boss-touch button {
     background-color: var(--teal);
     color: #fff;
     border: none;
@@ -517,6 +517,36 @@
     touch-action: none;
   }
   #boss-hint { font-size: 14px; opacity: 0.7; max-width: 640px; }
+  #boss-pick {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: rgba(5, 1, 13, 0.98);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  #boss-pick.open { display: flex; }
+  #boss-pick h2 { margin: 0; letter-spacing: 3px; text-transform: uppercase; }
+  .pick-row { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+  .pick-card {
+    background: #1a0f33;
+    color: #fff;
+    border: 2px solid var(--teal);
+    padding: 12px 16px;
+    font-family: inherit;
+    font-size: 18px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    width: 170px;
+  }
+  .pick-card:hover { box-shadow: 0 0 16px rgba(var(--teal-rgb), 0.8); }
+  .pick-card canvas { display: block; margin: 0 auto 8px; }
+  .pick-card small { display: block; opacity: 0.7; font-size: 13px; letter-spacing: 0; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -725,6 +755,15 @@
   </div>
 
   <div id="boss-modal">
+    <div id="boss-pick">
+      <h2>Choose your character</h2>
+      <div class="pick-row">
+        <button class="pick-card" data-char="patapim"><canvas width="60" height="80"></canvas>Brr Brr Patapim<small>Balanced</small></button>
+        <button class="pick-card" data-char="sixseven"><canvas width="60" height="80"></canvas>67<small>Fast and a high jump, less HP</small></button>
+        <button class="pick-card" data-char="sigma"><canvas width="60" height="80"></canvas>Sigma Boy<small>Tanky, slower</small></button>
+      </div>
+      <button id="boss-pick-close" class="pick-card" style="width:auto">Close</button>
+    </div>
     <div id="boss-name">TUNG TUNG TUNG SAHUR</div>
     <div class="boss-bar"><i id="boss-hp-fill"></i></div>
     <canvas id="boss-canvas" width="640" height="360"></canvas>
@@ -734,6 +773,7 @@
       <button id="boss-left">&#9664;</button>
       <button id="boss-jump">Jump</button>
       <button id="boss-right">&#9654;</button>
+      <button id="boss-char">Character</button>
       <button id="boss-close">Close</button>
     </div>
     <div id="boss-hint">Move with arrow keys or A / D, jump with Space, W or Up. Land on his head to hurt him. Dodge his dash, and jump over the shockwaves from his bat.</div>
@@ -1153,6 +1193,66 @@
       var keys = {};
       var touch = { left: false, right: false };
       var pl, boss, waves, over, last, raf, msgTimer;
+      var cur = 'patapim';
+      var pickEl = document.getElementById('boss-pick');
+      var CHARS = {
+        patapim:  { hp: 100, speed: 230, jump: 700 },
+        sixseven: { hp: 80,  speed: 285, jump: 750 },
+        sigma:    { hp: 130, speed: 200, jump: 680 }
+      };
+
+      // draws a 28x40 character with its top-left at (x, y)
+      function drawChar(c, type, x, y, face) {
+        c.lineWidth = 3;
+        c.strokeStyle = '#000';
+        function body(color, r) {
+          c.fillStyle = color;
+          c.beginPath();
+          if (c.roundRect) c.roundRect(x, y, 28, 40, r); else c.rect(x, y, 28, 40);
+          c.fill();
+          c.stroke();
+        }
+        function eyes(dy, col) {
+          c.fillStyle = col || '#000';
+          c.beginPath(); c.arc(x + 9 + face * 3, y + dy, 3, 0, 7); c.fill();
+          c.beginPath(); c.arc(x + 19 + face * 3, y + dy, 3, 0, 7); c.fill();
+        }
+        if (type === 'patapim') {
+          body('#8a5a2b', 8);
+          c.fillStyle = '#2f8f3a';
+          c.beginPath(); c.arc(x + 14, y + 5, 15, Math.PI, 0); c.fill(); c.stroke();
+          c.fillStyle = '#e0a070';
+          c.beginPath(); c.ellipse(x + 14 + face * 6, y + 20, 7, 5, 0, 0, 7); c.fill(); c.stroke();
+          eyes(13, '#fff');
+          c.fillStyle = '#000';
+          c.beginPath(); c.arc(x + 9 + face * 4, y + 13, 1.5, 0, 7); c.fill();
+          c.beginPath(); c.arc(x + 19 + face * 4, y + 13, 1.5, 0, 7); c.fill();
+        } else if (type === 'sixseven') {
+          body('#2b8cff', 10);
+          c.fillStyle = '#f5d0a0';
+          c.beginPath(); c.arc(x + 14, y + 11, 10, 0, 7); c.fill(); c.stroke();
+          eyes(10);
+          c.fillStyle = '#fff';
+          c.font = 'bold 13px sans-serif';
+          c.textAlign = 'center';
+          c.fillText('67', x + 14, y + 33);
+          c.textAlign = 'start';
+        } else {
+          body('#15151c', 6);
+          c.fillStyle = '#f5d0a0';
+          c.fillRect(x + 4, y + 2, 20, 16);
+          c.strokeRect(x + 4, y + 2, 20, 16);
+          c.fillStyle = '#000';
+          c.fillRect(x + 4, y + 7, 20, 6);
+          c.fillStyle = '#fff';
+          c.fillRect(x + 12, y + 20, 4, 18);
+        }
+      }
+      Array.prototype.forEach.call(document.querySelectorAll('.pick-card[data-char]'), function (b) {
+        var c = b.querySelector('canvas').getContext('2d');
+        c.scale(2, 2);
+        drawChar(c, b.getAttribute('data-char'), 1, 0, 1);
+      });
 
       function say(t, ms) {
         msg.textContent = t;
@@ -1161,10 +1261,11 @@
       }
       function bars() {
         bossFill.style.width = Math.max(0, boss.hp) + '%';
-        meFill.style.width = Math.max(0, pl.hp) + '%';
+        meFill.style.width = Math.max(0, pl.hp) / pl.max * 100 + '%';
       }
       function reset() {
-        pl = { x: 100, y: GROUND - 40, w: 28, h: 40, vx: 0, vy: 0, hp: 100, inv: 0, face: 1, ground: true };
+        var cs = CHARS[cur];
+        pl = { x: 100, y: GROUND - 40, w: 28, h: 40, vx: 0, vy: 0, hp: cs.hp, max: cs.hp, speed: cs.speed, jump: cs.jump, inv: 0, face: 1, ground: true };
         boss = { x: 470, y: GROUND - 110, w: 70, h: 110, hp: 100, state: 'chase', t: 1.5, dir: -1, inv: 0, next: 'dash' };
         waves = [];
         over = false;
@@ -1221,10 +1322,10 @@
         if (keys.left || touch.left) move -= 1;
         if (keys.right || touch.right) move += 1;
         if (pl.inv > 0) pl.inv -= dt;
-        var target = move * 230;
+        var target = move * pl.speed;
         pl.vx += (target - pl.vx) * Math.min(1, 12 * dt);
         if (move) pl.face = move;
-        if (keys.jump && pl.ground) { pl.vy = -700; pl.ground = false; }
+        if (keys.jump && pl.ground) { pl.vy = -pl.jump; pl.ground = false; }
         var prevBottom = pl.y + pl.h;
         pl.vy += 1800 * dt;
         pl.x += pl.vx * dt;
@@ -1317,27 +1418,8 @@
         ctx.fillStyle = '#5a1a10';
         ctx.beginPath(); ctx.ellipse(bx + 35, by + 55, 10, 7, 0, 0, 7); ctx.fill();
 
-        // player (axolotl-ish)
-        if (!(pl.inv > 0 && Math.floor(pl.inv * 20) % 2 === 0)) {
-          ctx.lineWidth = 3;
-          ctx.strokeStyle = '#000';
-          ctx.fillStyle = '#f7a8c4';
-          ctx.beginPath();
-          if (ctx.roundRect) ctx.roundRect(pl.x, pl.y, pl.w, pl.h, 10); else ctx.rect(pl.x, pl.y, pl.w, pl.h);
-          ctx.fill();
-          ctx.stroke();
-          ctx.strokeStyle = '#ff2bd6';
-          ctx.beginPath();
-          ctx.moveTo(pl.x, pl.y + 8); ctx.lineTo(pl.x - 8, pl.y + 4);
-          ctx.moveTo(pl.x, pl.y + 14); ctx.lineTo(pl.x - 8, pl.y + 14);
-          ctx.moveTo(pl.x + pl.w, pl.y + 8); ctx.lineTo(pl.x + pl.w + 8, pl.y + 4);
-          ctx.moveTo(pl.x + pl.w, pl.y + 14); ctx.lineTo(pl.x + pl.w + 8, pl.y + 14);
-          ctx.stroke();
-          ctx.fillStyle = '#000';
-          var px = pl.face * 3;
-          ctx.beginPath(); ctx.arc(pl.x + 9 + px, pl.y + 14, 3, 0, 7); ctx.fill();
-          ctx.beginPath(); ctx.arc(pl.x + 19 + px, pl.y + 14, 3, 0, 7); ctx.fill();
-        }
+        // player
+        if (!(pl.inv > 0 && Math.floor(pl.inv * 20) % 2 === 0)) drawChar(ctx, cur, pl.x, pl.y, pl.face);
       }
 
       function loop(ts) {
@@ -1348,7 +1430,16 @@
         draw();
         raf = requestAnimationFrame(loop);
       }
+      function openPick() {
+        cancelAnimationFrame(raf);
+        over = true;
+        keys = {};
+        touch.left = touch.right = false;
+        modal.classList.add('open');
+        pickEl.classList.add('open');
+      }
       function start() {
+        pickEl.classList.remove('open');
         reset();
         modal.classList.add('open');
         cancelAnimationFrame(raf);
@@ -1356,6 +1447,7 @@
         raf = requestAnimationFrame(loop);
       }
       function close() {
+        pickEl.classList.remove('open');
         modal.classList.remove('open');
         cancelAnimationFrame(raf);
         keys = {};
@@ -1370,6 +1462,7 @@
         if (!modal.classList.contains('open')) return;
         var k = e.key.toLowerCase();
         if (k === 'escape') return close();
+        if (pickEl.classList.contains('open')) return;
         if (k === 'enter' && over) { start(); return; }
         if (map[k]) { e.preventDefault(); keys[map[k]] = true; }
       });
@@ -1385,7 +1478,12 @@
       hold('boss-left', function () { touch.left = true; }, function () { touch.left = false; });
       hold('boss-right', function () { touch.right = true; }, function () { touch.right = false; });
       hold('boss-jump', function () { keys.jump = true; }, function () { keys.jump = false; });
-      document.getElementById('boss-btn').addEventListener('click', start);
+      document.getElementById('boss-btn').addEventListener('click', openPick);
+      document.getElementById('boss-char').addEventListener('click', openPick);
+      document.getElementById('boss-pick-close').addEventListener('click', close);
+      Array.prototype.forEach.call(document.querySelectorAll('.pick-card[data-char]'), function (b) {
+        b.addEventListener('click', function () { cur = b.getAttribute('data-char'); start(); });
+      });
       document.getElementById('boss-close').addEventListener('click', close);
       cv.addEventListener('click', function () { if (over) start(); });
     })();
