@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Maksim's Website</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Boogaloo&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #ff2bd6;
+    --purple: #8a2bff;
+    --teal: #00c9b7;
+    --pink-rgb: 255, 43, 214;
+    --purple-rgb: 138, 43, 255;
+    --teal-rgb: 0, 201, 183;
+    --axo-hue: 110deg;
+    --black: #05010d;
+  }
+  :root.theme-red {
+    --pink: #ff2b2b; --purple: #b00020; --teal: #e0451f;
+    --pink-rgb: 255, 43, 43; --purple-rgb: 176, 0, 32; --teal-rgb: 224, 69, 31;
+    --axo-hue: 160deg;
+  }
+  :root.theme-green {
+    --pink: #39ff7a; --purple: #0b8f3a; --teal: #12a150;
+    --pink-rgb: 57, 255, 122; --purple-rgb: 11, 143, 58; --teal-rgb: 18, 161, 80;
+    --axo-hue: -80deg;
+  }
+  :root.theme-blue {
+    --pink: #2b8cff; --purple: #2b3bff; --teal: #0a7fd1;
+    --pink-rgb: 43, 140, 255; --purple-rgb: 43, 59, 255; --teal-rgb: 10, 127, 209;
+    --axo-hue: 0deg;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(ellipse at 15% 0%, rgba(var(--pink-rgb), 0.28), transparent 45%),
+      radial-gradient(ellipse at 90% 40%, rgba(var(--teal-rgb), 0.18), transparent 45%),
+      radial-gradient(ellipse at 20% 100%, rgba(var(--purple-rgb), 0.3), transparent 50%),
+      var(--black);
+    font-family: 'Bebas Neue', 'Boogaloo', Arial, sans-serif;
+    letter-spacing: 1px;
+    color: #f2e9ff;
+  }
+  h1, h2, p, footer, button {
+    animation: textBounce 3s ease-in-out infinite;
+  }
+  nav a {
+    display: inline-block;
+    animation: textBounce 3s ease-in-out infinite;
+  }
+  @keyframes textBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  @keyframes neonFlicker {
+    0%, 18%, 22%, 62%, 64%, 100% { opacity: 1; }
+    20%, 63% { opacity: 0.75; }
+  }
+  @keyframes borderPulse {
+    0%, 100% { box-shadow: 0 0 10px var(--pink), 0 0 28px rgba(var(--pink-rgb), 0.5), inset 0 0 14px rgba(var(--teal-rgb), 0.35); }
+    50% { box-shadow: 0 0 18px var(--teal), 0 0 40px rgba(var(--teal-rgb), 0.5), inset 0 0 20px rgba(var(--pink-rgb), 0.4); }
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 30px;
+    background: rgba(5, 1, 13, 0.92);
+    color: white;
+    padding: 18px 40px;
+    border-top: 8px solid var(--purple);
+    border-image: linear-gradient(90deg, var(--pink), var(--purple), var(--teal)) 1;
+    border-bottom: 2px solid rgba(var(--pink-rgb), 0.6);
+    box-shadow: 0 6px 30px rgba(var(--pink-rgb), 0.35);
+  }
+  header h1 {
+    margin: 0;
+    font-size: 54px;
+    font-weight: 400;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 0 6px #fff, 0 0 14px var(--pink), 0 0 30px var(--pink), 0 0 60px var(--pink);
+    animation: neonFlicker 5s linear infinite;
+  }
+  nav a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 16px;
+    font-size: 20px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+    border-bottom: 2px solid transparent;
+  }
+  nav a:hover {
+    color: var(--teal);
+    border-bottom-color: var(--teal);
+    text-shadow: 0 0 10px var(--teal);
+  }
+  main {
+    padding: 20px;
+  }
+  section {
+    background: rgba(0, 0, 0, 0.88);
+    max-width: 560px;
+    margin: 40px auto;
+    padding: 26px 34px;
+    border-radius: 4px;
+    border: 3px solid var(--pink);
+    outline: 2px solid var(--teal);
+    outline-offset: 7px;
+    animation: borderPulse 4s ease-in-out infinite;
+  }
+  section h2 {
+    margin-top: 0;
+    font-size: 36px;
+    font-weight: 400;
+    text-transform: uppercase;
+    color: #fff;
+    border-left: 6px solid var(--pink);
+    padding-left: 12px;
+    text-shadow: 0 0 10px var(--pink);
+  }
+  section p {
+    color: #d9c9f2;
+    font-size: 20px;
+    line-height: 1.4;
+  }
+  #about {
+    border-color: var(--purple);
+    outline-color: var(--pink);
+  }
+  #contact {
+    border-color: var(--teal);
+    outline-color: var(--purple);
+  }
+  .intro {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 22px;
+    text-transform: uppercase;
+  }
+  .rt-ch.ok {
+    color: #39ff14 !important;
+    text-shadow: 0 0 8px #39ff14 !important;
+  }
+  .rt-ch.cur {
+    background: rgba(255, 255, 255, 0.35);
+    border-radius: 2px;
+    box-shadow: 0 2px 0 #fff;
+  }
+  #rt-hud {
+    display: none;
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    z-index: 3000;
+    background: rgba(5, 1, 13, 0.95);
+    color: #fff;
+    border: 3px solid #39ff14;
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.6);
+    padding: 10px 22px;
+    font-size: 26px;
+    text-align: center;
+    gap: 16px;
+    align-items: center;
+  }
+  #rt-hud.open {
+    display: flex;
+  }
+  #rt-hud button {
+    animation: none;
+    background: #39ff14;
+    color: #05010d;
+    border: none;
+    font-family: inherit;
+    font-size: 20px;
+    padding: 6px 16px;
+    cursor: pointer;
+  }
+  #cube-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(5, 1, 13, 0.92);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 16px;
+    overflow-y: auto;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #cube-modal.open {
+    display: flex;
+  }
+  #cube-stage {
+    width: min(92vw, 420px);
+    height: min(60vh, 340px);
+    perspective: 900px;
+    cursor: grab;
+    touch-action: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #cube-stage:active {
+    cursor: grabbing;
+  }
+  #cube-scene {
+    position: relative;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+  }
+  .cubie {
+    position: absolute;
+    left: -27px;
+    top: -27px;
+    width: 54px;
+    height: 54px;
+    transform-style: preserve-3d;
+  }
+  .cface {
+    position: absolute;
+    width: 54px;
+    height: 54px;
+    background: #0b0b0b;
+    border-radius: 6px;
+    box-shadow: inset 0 0 0 3px #0b0b0b;
+  }
+  .cface.col {
+    box-shadow: inset 0 0 0 3px #0b0b0b, inset 0 0 12px rgba(0, 0, 0, 0.25);
+  }
+  #cube-status {
+    color: #fff;
+    font-size: 24px;
+    min-height: 30px;
+    text-align: center;
+    text-shadow: 0 0 10px var(--pink);
+  }
+  #cube-moves, #cube-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    max-width: 460px;
+  }
+  #cube-moves button, #cube-actions button {
+    animation: none;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    border: 2px solid var(--pink);
+    font-family: inherit;
+    font-size: 20px;
+    min-width: 52px;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+  #cube-moves button:hover, #cube-actions button:hover {
+    background: var(--teal);
+  }
+  #cube-hint {
+    color: #bbb;
+    font-size: 16px;
+    text-align: center;
+    max-width: 460px;
+  }
+  .shark-gone {
+    opacity: 0 !important;
+    visibility: hidden;
+    transition: opacity 0.35s, visibility 0s 0.35s;
+  }
+  #shark {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    pointer-events: none;
+    display: none;
+    filter: drop-shadow(0 0 18px rgba(var(--teal-rgb), 0.7));
+  }
+  #shark .lower-jaw {
+    transform-box: view-box;
+    transform-origin: 290px 105px;
+    animation: chomp 0.7s ease-in-out infinite;
+  }
+  @keyframes chomp {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(30deg); }
+  }
+  #baby-shark-btn,
+  #theme-btn,
+  #cube-btn,
+  #ratotype-btn {
+    margin-left: 12px;
+  }
+  .cat-wrap {
+    text-align: center;
+    margin: 40px auto;
+  }
+  #cat-scare {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    z-index: 5000;
+    background: #000;
+  }
+  #cat-scare.show {
+    display: block;
+  }
+  #axolotl-btn,
+  #baby-shark-btn,
+  #theme-btn,
+  #cube-btn,
+  #ratotype-btn,
+  #cat-btn {
+    background-color: var(--teal);
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    padding: 14px 34px;
+    font-family: inherit;
+    font-size: 22px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 20px;
+    box-shadow: 0 0 16px rgba(var(--teal-rgb), 0.7);
+  }
+  #axolotl-btn:hover {
+    background-color: var(--pink);
+    box-shadow: 0 0 20px var(--pink);
+  }
+  #axolotl-result {
+    display: none;
+    margin-top: 20px;
+  }
+  #axolotl-result h2 {
+    font-size: 44px;
+    border: none;
+    padding: 0;
+    color: #fff;
+    text-shadow: 0 0 8px #fff, 0 0 20px var(--pink), 0 0 40px var(--pink);
+  }
+  footer {
+    background: linear-gradient(90deg, var(--pink), var(--purple), var(--teal));
+    color: white;
+    text-align: center;
+    padding: 15px;
+    margin-top: 40px;
+    font-size: 20px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  }
+  .side-axolotls {
+    position: fixed;
+    top: 0;
+    height: 100%;
+    width: 70px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .side-axolotls.left {
+    left: 5px;
+  }
+  .side-axolotls.right {
+    right: 5px;
+  }
+  .side-axolotl {
+    width: 50px;
+    opacity: 0.55;
+    filter: hue-rotate(110deg) drop-shadow(0 0 8px var(--pink));
+    animation: bob 3s ease-in-out infinite;
+  }
+  .side-axolotl:nth-child(1) { animation-delay: 0s; filter: hue-rotate(110deg) drop-shadow(0 0 8px #ff2bd6); }
+  .side-axolotl:nth-child(2) { animation-delay: 0.6s; filter: hue-rotate(250deg) drop-shadow(0 0 8px #ffb000); }
+  .side-axolotl:nth-child(3) { animation-delay: 1.2s; filter: hue-rotate(-60deg) drop-shadow(0 0 8px #39ff14); }
+  .side-axolotl:nth-child(4) { animation-delay: 1.8s; filter: hue-rotate(0deg) drop-shadow(0 0 8px #00c9b7); }
+  .side-axolotl:nth-child(5) { animation-delay: 2.4s; filter: hue-rotate(60deg) drop-shadow(0 0 8px #8a2bff); }
+  .side-axolotls.right .side-axolotl:nth-child(1) { filter: hue-rotate(60deg) drop-shadow(0 0 8px #8a2bff); }
+  .side-axolotls.right .side-axolotl:nth-child(2) { filter: hue-rotate(0deg) drop-shadow(0 0 8px #00c9b7); }
+  .side-axolotls.right .side-axolotl:nth-child(3) { filter: hue-rotate(110deg) drop-shadow(0 0 8px #ff2bd6); }
+  .side-axolotls.right .side-axolotl:nth-child(4) { filter: hue-rotate(250deg) drop-shadow(0 0 8px #ffb000); }
+  .side-axolotls.right .side-axolotl:nth-child(5) { filter: hue-rotate(-60deg) drop-shadow(0 0 8px #39ff14); }
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+  .giant-axolotl-wrap {
+    text-align: center;
+    margin: 40px auto;
+  }
+  #giant-axolotl {
+    width: 60vw;
+    max-width: 500px;
+    cursor: pointer;
+    filter: hue-rotate(var(--axo-hue)) drop-shadow(0 0 18px var(--pink));
+  }
+  #giant-axolotl.wiggle {
+    animation: axolotlWiggle 0.8s ease-in-out;
+  }
+  @keyframes axolotlWiggle {
+    0% { transform: rotate(0deg) scale(1); }
+    20% { transform: rotate(-15deg) scale(1.1); }
+    40% { transform: rotate(15deg) scale(1.1); }
+    60% { transform: rotate(-10deg) scale(1.05); }
+    80% { transform: rotate(10deg) scale(1.05); }
+    100% { transform: rotate(0deg) scale(1); }
+  }
+  #mc-axolotl {
+    width: 50vw;
+    max-width: 400px;
+    cursor: pointer;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 14px var(--teal));
+  }
+  .mc-caption {
+    font-size: 22px;
+    text-transform: uppercase;
+    color: var(--teal);
+    text-shadow: 0 0 10px var(--teal);
+  }
+  .mc-bucket {
+    display: none;
+  }
+  #mc-axolotl.bucket .mc-normal {
+    display: none;
+  }
+  #mc-axolotl.bucket .mc-bucket {
+    display: inline;
+  }
+  #bg-axolotl {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70vw;
+    max-width: 700px;
+    opacity: 0.1;
+    filter: hue-rotate(110deg);
+    z-index: -1;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <svg id="bg-axolotl" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="100" cy="100" rx="70" ry="45" fill="#3fa9d4"/>
+    <ellipse cx="100" cy="70" rx="55" ry="40" fill="#3fa9d4"/>
+    <circle cx="80" cy="60" r="6" fill="#1b6ca8"/>
+    <circle cx="120" cy="60" r="6" fill="#1b6ca8"/>
+    <path d="M75 85 Q100 100 125 85" stroke="#1b6ca8" stroke-width="2" fill="none"/>
+    <path d="M50 45 Q35 25 45 15" stroke="#1b6ca8" stroke-width="3" fill="#6ec3e8"/>
+    <path d="M55 40 Q45 15 58 8" stroke="#1b6ca8" stroke-width="3" fill="#6ec3e8"/>
+    <path d="M62 40 Q58 12 72 8" stroke="#1b6ca8" stroke-width="3" fill="#6ec3e8"/>
+    <path d="M150 45 Q165 25 155 15" stroke="#1b6ca8" stroke-width="3" fill="#6ec3e8"/>
+    <path d="M145 40 Q155 15 142 8" stroke="#1b6ca8" stroke-width="3" fill="#6ec3e8"/>
+    <path d="M138 40 Q142 12 128 8" stroke="#1b6ca8" stroke-width="3" fill="#6ec3e8"/>
+    <ellipse cx="40" cy="120" rx="12" ry="6" fill="#3fa9d4"/>
+    <ellipse cx="160" cy="120" rx="12" ry="6" fill="#3fa9d4"/>
+  </svg>
+
+  <svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <symbol id="axolotl-icon" viewBox="0 0 200 160">
+        <ellipse cx="100" cy="100" rx="70" ry="45" fill="#3fa9d4"/>
+        <ellipse cx="100" cy="70" rx="55" ry="40" fill="#3fa9d4"/>
+        <circle cx="80" cy="60" r="6" fill="#1b6ca8"/>
+        <circle cx="120" cy="60" r="6" fill="#1b6ca8"/>
+        <path d="M75 85 Q100 100 125 85" stroke="#1b6ca8" stroke-width="2" fill="none"/>
+        <path d="M50 45 Q35 25 45 15" stroke="#1b6ca8" stroke-width="3" fill="#6ec3e8"/>
+        <path d="M55 40 Q45 15 58 8" stroke="#1b6ca8" stroke-width="3" fill="#6ec3e8"/>
+        <path d="M62 40 Q58 12 72 8" stroke="#1b6ca8" stroke-width="3" fill="#6ec3e8"/>
+        <path d="M150 45 Q165 25 155 15" stroke="#1b6ca8" stroke-width="3" fill="#6ec3e8"/>
+        <path d="M145 40 Q155 15 142 8" stroke="#1b6ca8" stroke-width="3" fill="#6ec3e8"/>
+        <path d="M138 40 Q142 12 128 8" stroke="#1b6ca8" stroke-width="3" fill="#6ec3e8"/>
+        <ellipse cx="40" cy="120" rx="12" ry="6" fill="#3fa9d4"/>
+        <ellipse cx="160" cy="120" rx="12" ry="6" fill="#3fa9d4"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <div class="side-axolotls left">
+    <svg class="side-axolotl"><use href="#axolotl-icon"/></svg>
+    <svg class="side-axolotl"><use href="#axolotl-icon"/></svg>
+    <svg class="side-axolotl"><use href="#axolotl-icon"/></svg>
+    <svg class="side-axolotl"><use href="#axolotl-icon"/></svg>
+    <svg class="side-axolotl"><use href="#axolotl-icon"/></svg>
+  </div>
+  <div class="side-axolotls right">
+    <svg class="side-axolotl"><use href="#axolotl-icon"/></svg>
+    <svg class="side-axolotl"><use href="#axolotl-icon"/></svg>
+    <svg class="side-axolotl"><use href="#axolotl-icon"/></svg>
+    <svg class="side-axolotl"><use href="#axolotl-icon"/></svg>
+    <svg class="side-axolotl"><use href="#axolotl-icon"/></svg>
+  </div>
+
+  <header>
+    <h1>Maksim</h1>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#hobbies">Hobbies</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="intro">
+      <p>I like sports like Swimming and Running</p>
+      <button id="axolotl-btn" onclick="document.getElementById('axolotl-result').style.display='block'">Axolotl</button>
+      <button id="baby-shark-btn">BABY SHARK</button>
+      <button id="theme-btn">THEME</button>
+      <button id="cube-btn">CUBE</button>
+      <button id="ratotype-btn">RATOTYPE</button>
+      <div id="axolotl-result">
+        <svg width="200" height="160" viewBox="0 0 200 160">
+          <ellipse cx="100" cy="100" rx="70" ry="45" fill="#f7a8c4" stroke="black" stroke-width="3"/>
+          <ellipse cx="100" cy="70" rx="55" ry="40" fill="#f7a8c4" stroke="black" stroke-width="3"/>
+          <circle cx="80" cy="60" r="6" fill="black"/>
+          <circle cx="120" cy="60" r="6" fill="black"/>
+          <path d="M75 85 Q100 100 125 85" stroke="black" stroke-width="2" fill="none"/>
+          <path d="M50 45 Q35 25 45 15" stroke="black" stroke-width="3" fill="#f28bb0"/>
+          <path d="M55 40 Q45 15 58 8" stroke="black" stroke-width="3" fill="#f28bb0"/>
+          <path d="M62 40 Q58 12 72 8" stroke="black" stroke-width="3" fill="#f28bb0"/>
+          <path d="M150 45 Q165 25 155 15" stroke="black" stroke-width="3" fill="#f28bb0"/>
+          <path d="M145 40 Q155 15 142 8" stroke="black" stroke-width="3" fill="#f28bb0"/>
+          <path d="M138 40 Q142 12 128 8" stroke="black" stroke-width="3" fill="#f28bb0"/>
+          <ellipse cx="40" cy="120" rx="12" ry="6" fill="#f7a8c4" stroke="black" stroke-width="2"/>
+          <ellipse cx="160" cy="120" rx="12" ry="6" fill="#f7a8c4" stroke="black" stroke-width="2"/>
+        </svg>
+        <h2>AXOLOTLS!!!</h2>
+      </div>
+    </div>
+
+    <section id="about">
+      <h2>About Me</h2>
+      <p>Minecraft is my favorite game because I can build anything I can imagine. I love exploring caves, fighting mobs, and finding diamonds. My favorite mob is the axolotl, and I like playing with friends on survival servers.</p>
+    </section>
+
+    <section id="hobbies">
+      <h2>My Hobbies</h2>
+      <p>I love sports, especially swimming and running. They keep me active and help me clear my mind. I also enjoy hanging out with friends and exploring new activities whenever I can.</p>
+    </section>
+
+    <section id="contact">
+      <h2>Contact</h2>
+      <p>Want to say hi or talk about sports? Feel free to reach out! I'm always happy to meet new people and chat about swimming, running, or anything fun.</p>
+    </section>
+
+    <div class="giant-axolotl-wrap">
+      <svg id="giant-axolotl" viewBox="0 0 200 160" onclick="this.classList.remove('wiggle'); void this.offsetWidth; this.classList.add('wiggle')">
+        <ellipse cx="100" cy="100" rx="70" ry="45" fill="#3fa9d4" stroke="#1b3a4b" stroke-width="3"/>
+        <ellipse cx="100" cy="70" rx="55" ry="40" fill="#3fa9d4" stroke="#1b3a4b" stroke-width="3"/>
+        <circle cx="80" cy="60" r="6" fill="#1b3a4b"/>
+        <circle cx="120" cy="60" r="6" fill="#1b3a4b"/>
+        <path d="M75 85 Q100 100 125 85" stroke="#1b3a4b" stroke-width="2" fill="none"/>
+        <path d="M50 45 Q35 25 45 15" stroke="#1b3a4b" stroke-width="3" fill="#6ec3e8"/>
+        <path d="M55 40 Q45 15 58 8" stroke="#1b3a4b" stroke-width="3" fill="#6ec3e8"/>
+        <path d="M62 40 Q58 12 72 8" stroke="#1b3a4b" stroke-width="3" fill="#6ec3e8"/>
+        <path d="M150 45 Q165 25 155 15" stroke="#1b3a4b" stroke-width="3" fill="#6ec3e8"/>
+        <path d="M145 40 Q155 15 142 8" stroke="#1b3a4b" stroke-width="3" fill="#6ec3e8"/>
+        <path d="M138 40 Q142 12 128 8" stroke="#1b3a4b" stroke-width="3" fill="#6ec3e8"/>
+        <ellipse cx="40" cy="120" rx="12" ry="6" fill="#3fa9d4" stroke="#1b3a4b" stroke-width="2"/>
+        <ellipse cx="160" cy="120" rx="12" ry="6" fill="#3fa9d4" stroke="#1b3a4b" stroke-width="2"/>
+      </svg>
+    </div>
+
+    <div class="giant-axolotl-wrap">
+      <svg id="mc-axolotl" viewBox="0 0 200 160" shape-rendering="crispEdges" onclick="this.classList.toggle('bucket')">
+        <g class="mc-frame mc-normal">
+          <rect x="20" y="60" width="20" height="20" fill="#4a90c4"/>
+          <rect x="40" y="40" width="20" height="60" fill="#4a90c4"/>
+          <rect x="60" y="40" width="60" height="60" fill="#4a90c4"/>
+          <rect x="120" y="40" width="40" height="60" fill="#4a90c4"/>
+          <rect x="140" y="20" width="20" height="20" fill="#f2a7c4"/>
+          <rect x="160" y="30" width="20" height="20" fill="#f2a7c4"/>
+          <rect x="150" y="50" width="10" height="10" fill="#1b3a4b"/>
+          <rect x="60" y="100" width="20" height="10" fill="#2f6a96"/>
+          <rect x="120" y="100" width="20" height="10" fill="#2f6a96"/>
+        </g>
+        <g class="mc-frame mc-bucket">
+          <rect x="70" y="20" width="10" height="10" fill="#6b6b6b"/>
+          <rect x="120" y="20" width="10" height="10" fill="#6b6b6b"/>
+          <rect x="70" y="10" width="60" height="10" fill="#6b6b6b"/>
+          <rect x="60" y="30" width="80" height="90" fill="#9e9e9e"/>
+          <rect x="70" y="40" width="60" height="70" fill="#6ec3e8"/>
+          <rect x="80" y="65" width="10" height="15" fill="#4a90c4"/>
+          <rect x="90" y="55" width="10" height="35" fill="#4a90c4"/>
+          <rect x="100" y="55" width="20" height="35" fill="#4a90c4"/>
+          <rect x="120" y="55" width="10" height="35" fill="#4a90c4"/>
+          <rect x="115" y="45" width="10" height="10" fill="#f2a7c4"/>
+          <rect x="118" y="52" width="6" height="6" fill="#1b3a4b"/>
+        </g>
+      </svg>
+      <p class="mc-caption">Click it!</p>
+    </div>
+
+    <div class="cat-wrap">
+      <button id="cat-btn">CUTE CAT</button>
+    </div>
+  </main>
+
+  <img id="cat-scare" src="Scary.jpg" alt="">
+
+  <footer>
+    Made By Maksim
+  </footer>
+
+  <svg id="shark" viewBox="0 0 210 400" xmlns="http://www.w3.org/2000/svg">
+   <g transform="translate(210 0) rotate(90)">
+    <polygon points="0,30 75,100 0,170 28,100" fill="#3d5f8f"/>
+    <polygon points="290,105 392,106 340,152 290,142" fill="#8a0020"/>
+    <path d="M60,100 Q130,155 290,142 L290,105 Z" fill="#dfeaf5"/>
+    <g class="lower-jaw">
+      <path d="M290,105 L394,108 Q350,142 290,136 Z" fill="#dfeaf5"/>
+      <polygon points="300,105 310,92 320,105" fill="#fff"/>
+      <polygon points="325,106 335,93 345,106" fill="#fff"/>
+      <polygon points="350,107 360,94 370,107" fill="#fff"/>
+      <polygon points="374,108 382,97 390,108" fill="#fff"/>
+    </g>
+    <path d="M60,100 Q150,20 280,58 Q350,75 394,106 L290,105 Q150,105 60,100 Z" fill="#4a77b0"/>
+    <polygon points="300,105 310,119 320,105" fill="#fff"/>
+    <polygon points="325,106 335,120 345,106" fill="#fff"/>
+    <polygon points="350,107 360,121 370,107" fill="#fff"/>
+    <polygon points="374,108 382,119 390,108" fill="#fff"/>
+    <polygon points="140,52 178,0 205,48" fill="#3d5f8f"/>
+    <circle cx="332" cy="78" r="9" fill="#fff"/>
+    <circle cx="335" cy="78" r="4.5" fill="#000"/>
+    <path d="M250,80 Q256,95 250,108 M262,80 Q268,95 262,108 M274,80 Q280,95 274,108" stroke="#2d4a70" stroke-width="3" fill="none"/>
+   </g>
+  </svg>
+
+  <div id="rt-hud">
+    <span id="rt-text">0.0 s</span>
+    <button id="rt-close">Close</button>
+  </div>
+
+  <div id="cube-modal">
+    <div id="cube-status"></div>
+    <div id="cube-stage"><div id="cube-scene"></div></div>
+    <div id="cube-moves"></div>
+    <div id="cube-actions">
+      <button id="cube-scramble">Scramble</button>
+      <button id="cube-reset">Reset</button>
+      <button id="cube-close">Close</button>
+    </div>
+    <div id="cube-hint">Drag to rotate the cube. Turn a face with the buttons or keys U D L R F B (hold Shift for the reverse turn).</div>
+  </div>
+
+  <script>
+    (function () {
+      var S = 54;
+      var modal = document.getElementById('cube-modal');
+      var scene = document.getElementById('cube-scene');
+      var stage = document.getElementById('cube-stage');
+      var statusEl = document.getElementById('cube-status');
+      var movesEl = document.getElementById('cube-moves');
+      var cubies = [];
+      var queue = [];
+      var busy = false;
+      var started = false;   // a scramble has been applied
+      var moveCount = 0;
+      var rx = -25, ry = -35;
+
+      // face definitions: local normal, css transform, color
+      var FACES = [
+        { n: [0, 0, 1],  t: 'translateZ(27px)',                 c: '#1fa84a' }, // front  green
+        { n: [0, 0, -1], t: 'rotateY(180deg) translateZ(27px)', c: '#2457d6' }, // back   blue
+        { n: [1, 0, 0],  t: 'rotateY(90deg) translateZ(27px)',  c: '#d8261f' }, // right  red
+        { n: [-1, 0, 0], t: 'rotateY(-90deg) translateZ(27px)', c: '#ff8a1c' }, // left   orange
+        { n: [0, -1, 0], t: 'rotateX(90deg) translateZ(27px)',  c: '#f5f5f5' }, // up     white
+        { n: [0, 1, 0],  t: 'rotateX(-90deg) translateZ(27px)', c: '#ffd500' }  // down   yellow
+      ];
+
+      // move name -> axis index, layer, sign (derived for CSS coords: x right, y down, z toward viewer)
+      var MOVES = {
+        'U': { a: 1, l: -1, s: -1 }, "U'": { a: 1, l: -1, s: 1 },
+        'D': { a: 1, l: 1, s: 1 },   "D'": { a: 1, l: 1, s: -1 },
+        'L': { a: 0, l: -1, s: -1 }, "L'": { a: 0, l: -1, s: 1 },
+        'R': { a: 0, l: 1, s: 1 },   "R'": { a: 0, l: 1, s: -1 },
+        'F': { a: 2, l: 1, s: 1 },   "F'": { a: 2, l: 1, s: -1 },
+        'B': { a: 2, l: -1, s: -1 }, "B'": { a: 2, l: -1, s: 1 }
+      };
+      var NAMES = ['U', "U'", 'D', "D'", 'L', "L'", 'R', "R'", 'F', "F'", 'B', "B'"];
+
+      function rotMatrix(axis, s) {
+        if (axis === 0) return [[1, 0, 0], [0, 0, -s], [0, s, 0]];
+        if (axis === 1) return [[0, 0, s], [0, 1, 0], [-s, 0, 0]];
+        return [[0, -s, 0], [s, 0, 0], [0, 0, 1]];
+      }
+      function mulMat(A, B) {
+        var C = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+        for (var i = 0; i < 3; i++) for (var j = 0; j < 3; j++)
+          for (var k = 0; k < 3; k++) C[i][j] += A[i][k] * B[k][j];
+        return C;
+      }
+      function mulVec(A, v) {
+        return [0, 1, 2].map(function (i) {
+          return A[i][0] * v[0] + A[i][1] * v[1] + A[i][2] * v[2];
+        });
+      }
+      function cubieMatrix(c) {
+        var R = c.R, p = c.p;
+        return 'matrix3d(' +
+          R[0][0] + ',' + R[1][0] + ',' + R[2][0] + ',0,' +
+          R[0][1] + ',' + R[1][1] + ',' + R[2][1] + ',0,' +
+          R[0][2] + ',' + R[1][2] + ',' + R[2][2] + ',0,' +
+          p[0] * S + ',' + p[1] * S + ',' + p[2] * S + ',1)';
+      }
+      function render(c) { c.el.style.transform = cubieMatrix(c); }
+
+      function build() {
+        scene.innerHTML = '';
+        cubies = [];
+        for (var x = -1; x <= 1; x++) for (var y = -1; y <= 1; y++) for (var z = -1; z <= 1; z++) {
+          var el = document.createElement('div');
+          el.className = 'cubie';
+          var c = { p: [x, y, z], R: [[1, 0, 0], [0, 1, 0], [0, 0, 1]], el: el, stickers: [] };
+          FACES.forEach(function (f) {
+            var fe = document.createElement('div');
+            fe.className = 'cface';
+            fe.style.transform = f.t;
+            var outer = (f.n[0] !== 0 && f.n[0] === x) || (f.n[1] !== 0 && f.n[1] === y) || (f.n[2] !== 0 && f.n[2] === z);
+            if (outer) {
+              fe.style.backgroundColor = f.c;
+              fe.classList.add('col');
+              c.stickers.push({ n: f.n, c: f.c });
+            }
+            el.appendChild(fe);
+          });
+          render(c);
+          scene.appendChild(el);
+          cubies.push(c);
+        }
+      }
+
+      function isSolved() {
+        var seen = {};
+        for (var i = 0; i < cubies.length; i++) {
+          var c = cubies[i];
+          for (var j = 0; j < c.stickers.length; j++) {
+            var st = c.stickers[j];
+            var w = mulVec(c.R, st.n).join(',');
+            if (seen[w] === undefined) seen[w] = st.c;
+            else if (seen[w] !== st.c) return false;
+          }
+        }
+        return true;
+      }
+
+      function setStatus() {
+        if (!started) statusEl.textContent = 'Cube reset. Press Scramble to play again.';
+        else if (isSolved()) statusEl.textContent = 'Solved in ' + moveCount + ' moves! 🎉';
+        else statusEl.textContent = 'Moves: ' + moveCount;
+      }
+
+      function applyInstant(name) {
+        var m = MOVES[name], Q = rotMatrix(m.a, m.s);
+        cubies.forEach(function (c) {
+          if (c.p[m.a] === m.l) { c.p = mulVec(Q, c.p); c.R = mulMat(Q, c.R); render(c); }
+        });
+      }
+
+      function runQueue() {
+        if (busy || !queue.length) return;
+        busy = true;
+        var job = queue.shift();
+        var m = MOVES[job.name], Q = rotMatrix(m.a, m.s);
+        var layer = cubies.filter(function (c) { return c.p[m.a] === m.l; });
+        var axisFn = ['rotateX', 'rotateY', 'rotateZ'][m.a];
+        var start = null;
+        function step(ts) {
+          if (start === null) start = ts;
+          var t = Math.min(1, (ts - start) / job.dur);
+          var e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+          layer.forEach(function (c) {
+            c.el.style.transform = axisFn + '(' + (m.s * 90 * e) + 'deg) ' + cubieMatrix(c);
+          });
+          if (t < 1) { requestAnimationFrame(step); return; }
+          layer.forEach(function (c) { c.p = mulVec(Q, c.p); c.R = mulMat(Q, c.R); render(c); });
+          if (!job.silent) moveCount++;
+          busy = false;
+          setStatus();
+          runQueue();
+        }
+        requestAnimationFrame(step);
+      }
+
+      function turn(name, dur, silent) {
+        queue.push({ name: name, dur: dur || 220, silent: silent });
+        runQueue();
+      }
+
+      function randomMoves(n) {
+        var out = [], last = '';
+        while (out.length < n) {
+          var nm = NAMES[Math.floor(Math.random() * NAMES.length)];
+          if (nm[0] === last) continue;
+          last = nm[0];
+          out.push(nm);
+        }
+        return out;
+      }
+
+      function scrambleInstant() {
+        randomMoves(25).forEach(applyInstant);
+        started = true;
+        moveCount = 0;
+        if (isSolved()) { applyInstant('R'); applyInstant('U'); }
+        setStatus();
+      }
+
+      function scrambleAnimated() {
+        if (busy || queue.length) return;
+        started = true;
+        moveCount = 0;
+        randomMoves(20).forEach(function (nm) { turn(nm, 90, true); });
+      }
+
+      function resetCube() {
+        queue = [];
+        busy = false;
+        started = false;
+        moveCount = 0;
+        build();
+        setStatus();
+      }
+
+      function applyView() {
+        scene.style.transform = 'rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
+      }
+
+      // drag to rotate the whole cube
+      var drag = null;
+      stage.addEventListener('pointerdown', function (e) {
+        drag = { x: e.clientX, y: e.clientY };
+        stage.setPointerCapture(e.pointerId);
+      });
+      stage.addEventListener('pointermove', function (e) {
+        if (!drag) return;
+        ry += (e.clientX - drag.x) * 0.5;
+        rx -= (e.clientY - drag.y) * 0.5;
+        rx = Math.max(-90, Math.min(90, rx));
+        drag = { x: e.clientX, y: e.clientY };
+        applyView();
+      });
+      function endDrag() { drag = null; }
+      stage.addEventListener('pointerup', endDrag);
+      stage.addEventListener('pointercancel', endDrag);
+
+      // move buttons
+      NAMES.forEach(function (nm) {
+        var b = document.createElement('button');
+        b.textContent = nm;
+        b.addEventListener('click', function () { turn(nm); });
+        movesEl.appendChild(b);
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (!modal.classList.contains('open')) return;
+        if (e.key === 'Escape') { modal.classList.remove('open'); return; }
+        var k = e.key.toUpperCase();
+        if ('UDLRFB'.indexOf(k) === -1 || k.length !== 1) return;
+        turn(e.shiftKey ? k + "'" : k);
+      });
+
+      document.getElementById('cube-btn').addEventListener('click', function () {
+        modal.classList.add('open');
+        if (!cubies.length) {
+          build();
+          applyView();
+          scrambleInstant();
+        }
+      });
+      document.getElementById('cube-close').addEventListener('click', function () {
+        modal.classList.remove('open');
+      });
+      document.getElementById('cube-scramble').addEventListener('click', scrambleAnimated);
+      document.getElementById('cube-reset').addEventListener('click', resetCube);
+    })();
+  </script>
+  <script>
+    (function () {
+      var img = document.getElementById('cat-scare');
+      var btn = document.getElementById('cat-btn');
+      btn.addEventListener('click', function () {
+        btn.blur();
+        img.classList.add('show');
+        setTimeout(function () { img.classList.remove('show'); }, 1000);
+      });
+    })();
+  </script>
+  <script>
+    (function () {
+      var SELECTOR = 'header h1, header nav a, .intro > p, section h2, section p, .mc-caption, footer';
+      var hud = document.getElementById('rt-hud');
+      var hudText = document.getElementById('rt-text');
+      var saved = [];      // { el, html }
+      var chars = [];      // { span, ch, ci }
+      var pos = 0;
+      var active = false;
+      var t0 = 0;
+      var timer = null;
+
+      function fmt(ms) { return (ms / 1000).toFixed(2) + ' s'; }
+
+      function restore() {
+        saved.forEach(function (s) { s.el.innerHTML = s.html; });
+        saved = [];
+        chars = [];
+      }
+
+      function stop() {
+        active = false;
+        clearInterval(timer);
+        hud.classList.remove('open');
+        restore();
+      }
+
+      function markCurrent() {
+        chars.forEach(function (c) { c.span.classList.remove('cur'); });
+        if (pos < chars.length) {
+          var s = chars[pos].span;
+          s.classList.add('cur');
+          var r = s.getBoundingClientRect();
+          if (r.top < 80 || r.bottom > window.innerHeight - 100) {
+            s.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          }
+        }
+      }
+
+      function start() {
+        if (active) stop();
+        document.querySelectorAll('.shark-gone').forEach(function (el) { el.classList.remove('shark-gone'); });
+        document.querySelectorAll(SELECTOR).forEach(function (el) {
+          var text = el.textContent.replace(/\s+/g, ' ').trim();
+          if (!text) return;
+          saved.push({ el: el, html: el.innerHTML });
+          var ci = getComputedStyle(el).textTransform === 'uppercase';
+          el.textContent = '';
+          for (var i = 0; i < text.length; i++) {
+            var span = document.createElement('span');
+            span.className = 'rt-ch';
+            span.textContent = text[i];
+            el.appendChild(span);
+            chars.push({ span: span, ch: text[i], ci: ci });
+          }
+        });
+        pos = 0;
+        active = true;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        hud.classList.add('open');
+        hudText.textContent = '0.00 s';
+        t0 = performance.now();
+        timer = setInterval(function () { hudText.textContent = fmt(performance.now() - t0); }, 50);
+        markCurrent();
+      }
+
+      function finish() {
+        var ms = performance.now() - t0;
+        active = false;
+        clearInterval(timer);
+        chars.forEach(function (c) { c.span.classList.remove('cur'); });
+        hudText.textContent = 'Finished! Your time: ' + fmt(ms);
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (!active || pos >= chars.length) return;
+        if (document.getElementById('cube-modal').classList.contains('open')) return;
+        if (e.key === 'Escape') { stop(); return; }
+        if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+        if (e.key === ' ') e.preventDefault();
+        var c = chars[pos];
+        var ok = c.ci ? e.key.toLowerCase() === c.ch.toLowerCase() : e.key === c.ch;
+        if (!ok) return;
+        c.span.classList.add('ok');
+        pos++;
+        if (pos >= chars.length) finish(); else markCurrent();
+      });
+
+      document.getElementById('ratotype-btn').addEventListener('click', function (e) {
+        e.currentTarget.blur();
+        start();
+      });
+      document.getElementById('rt-close').addEventListener('click', stop);
+    })();
+  </script>
+  <script>
+    (function () {
+      var themes = ['', 'theme-red', 'theme-green', 'theme-blue'];
+      var i = 0;
+      document.getElementById('theme-btn').addEventListener('click', function () {
+        i = (i + 1) % themes.length;
+        var root = document.documentElement;
+        root.classList.remove('theme-red', 'theme-green', 'theme-blue');
+        if (themes[i]) root.classList.add(themes[i]);
+      });
+    })();
+    (function () {
+      var btn = document.getElementById('baby-shark-btn');
+      var shark = document.getElementById('shark');
+      var targets = 'header, .intro, section, .giant-axolotl-wrap, footer';
+      var running = false;
+
+      btn.addEventListener('click', function () {
+        if (running) return;
+        running = true;
+        btn.disabled = true;
+        document.querySelectorAll('.shark-gone').forEach(function (el) {
+          el.classList.remove('shark-gone');
+        });
+
+        var pageH = document.documentElement.scrollHeight;
+        shark.style.width = document.documentElement.clientWidth + 'px';
+        shark.style.display = 'block';
+        var sharkH = shark.getBoundingClientRect().height;
+        var y = -sharkH;
+        var speed = 260; // px per second
+        var last = null;
+        var t0 = null;
+
+        function frame(ts) {
+          if (last === null) { last = ts; t0 = ts; }
+          var dt = (ts - last) / 1000;
+          last = ts;
+          y += speed * dt;
+          shark.style.top = y + 'px';
+          shark.style.left = (document.documentElement.clientWidth - shark.offsetWidth) / 2 + 'px';
+
+          var sTop = y, sBottom = y + sharkH;
+          document.querySelectorAll(targets).forEach(function (el) {
+            var r = el.getBoundingClientRect();
+            var top = r.top + window.scrollY;
+            var bottom = r.bottom + window.scrollY;
+            if (bottom > sTop && top < sBottom) el.classList.add('shark-gone');
+          });
+
+          window.scrollTo(0, Math.max(0, y + sharkH / 2 - window.innerHeight / 2));
+
+          if (y > pageH) {
+            shark.style.display = 'none';
+            running = false;
+            btn.disabled = false;
+            return;
+          }
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      });
+    })();
+  </script>
+</body>
+</html>
