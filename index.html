@@ -304,7 +304,8 @@
   #theme-btn,
   #cube-btn,
   #ratotype-btn,
-  #boss-btn {
+  #boss-btn,
+  #gd-btn {
     margin-left: 12px;
   }
   .cat-wrap {
@@ -330,6 +331,7 @@
   #cube-btn,
   #ratotype-btn,
   #boss-btn,
+  #gd-btn,
   #cat-btn {
     background-color: var(--teal);
     color: #fff;
@@ -547,6 +549,44 @@
   .pick-card:hover { box-shadow: 0 0 16px rgba(var(--teal-rgb), 0.8); }
   .pick-card canvas { display: block; margin: 0 auto 8px; }
   .pick-card small { display: block; opacity: 0.7; font-size: 13px; letter-spacing: 0; margin-top: 4px; }
+  #gd-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2200;
+    background: rgba(5, 1, 13, 0.95);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    overflow-y: auto;
+    user-select: none;
+    -webkit-user-select: none;
+    color: #fff;
+    text-align: center;
+  }
+  #gd-modal.open { display: flex; }
+  #gd-canvas {
+    width: min(94vw, 640px);
+    aspect-ratio: 16 / 9;
+    border: 2px solid var(--teal);
+    touch-action: none;
+    cursor: pointer;
+  }
+  #gd-title { font-size: 26px; letter-spacing: 3px; text-transform: uppercase; }
+  #gd-close {
+    background-color: var(--teal);
+    color: #fff;
+    border: none;
+    padding: 10px 22px;
+    font-family: inherit;
+    font-size: 20px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  #gd-hint { font-size: 14px; opacity: 0.7; max-width: 640px; }
 </style>
 </head>
 <body>
@@ -619,6 +659,7 @@
       <button id="cube-btn">CUBE</button>
       <button id="ratotype-btn">RATOTYPE</button>
       <button id="boss-btn">67</button>
+      <button id="gd-btn">GEOMETRY DASH</button>
       <div id="axolotl-result">
         <svg width="200" height="160" viewBox="0 0 200 160">
           <ellipse cx="100" cy="100" rx="70" ry="45" fill="#f7a8c4" stroke="black" stroke-width="3"/>
@@ -777,6 +818,13 @@
       <button id="boss-close">Close</button>
     </div>
     <div id="boss-hint">Move with arrow keys or A / D, jump with Space, W or Up. Land on his head to hurt him. Dodge his dash, and jump over the shockwaves from his bat.</div>
+  </div>
+
+  <div id="gd-modal">
+    <div id="gd-title">Stereo Dash &ndash; Level 1</div>
+    <canvas id="gd-canvas" width="640" height="360"></canvas>
+    <button id="gd-close">Close</button>
+    <div id="gd-hint">Click, tap, or press Space / Up to jump (hold to keep jumping). Avoid the spikes, land on the blocks, and don't fall in the pits. Esc to close.</div>
   </div>
 
   <script>
@@ -1486,6 +1534,227 @@
       });
       document.getElementById('boss-close').addEventListener('click', close);
       cv.addEventListener('click', function () { if (over) start(); });
+    })();
+  </script>
+  <script>
+    (function () {
+      var W = 640, H = 360, GROUND = 300, U = 40;
+      var SPEED = 380, GRAV = 3040, JUMP = 760, PX = 120;
+      var modal = document.getElementById('gd-modal');
+      var cv = document.getElementById('gd-canvas');
+      var ctx = cv.getContext('2d');
+
+      // ---- level (all x in blocks) ----
+      var spikes = [], blocks = [], pits = [];
+      function spike(x, n) { for (var i = 0; i < (n || 1); i++) spikes.push(x + i); }
+      function block(x, w, h) { blocks.push({ x: x, w: w, h: h }); }
+      function pit(x, w) { pits.push({ x: x, w: w }); }
+      spike(14);
+      spike(21, 2);
+      block(28, 1, 1);
+      spike(32);
+      block(36, 3, 1);
+      spike(41, 3);
+      pit(49, 2);
+      block(55, 1, 1); block(56, 1, 2); spike(59);
+      spike(64); spike(67, 2);
+      block(73, 4, 1); spike(79);
+      pit(84, 3);
+      spike(92, 2);
+      block(98, 1, 1); block(101, 1, 1); block(104, 1, 1);
+      spike(108, 3);
+      block(116, 1, 1); block(117, 1, 2); block(118, 1, 3);
+      var LEVEL_END = 128;
+
+      var x, h, vy, onGround, rot, dead, deadT, won, attempt, holding, last, raf, parts, acc;
+
+      function reset() {
+        x = 0; h = 0; vy = 0; onGround = true; rot = 0;
+        dead = false; deadT = 0; won = false; parts = []; acc = 0;
+      }
+      function die() {
+        dead = true; deadT = 0.7;
+        for (var i = 0; i < 24; i++) {
+          var a = Math.random() * 6.28, v = 150 + Math.random() * 250;
+          parts.push({ x: PX + 20, h: h + 20, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.6 });
+        }
+      }
+
+      function step(dt) {
+        if (dead) {
+          deadT -= dt;
+          parts.forEach(function (q) { q.x += q.vx * dt; q.h += q.vy * dt; q.vy -= 900 * dt; q.life -= dt; });
+          if (deadT <= 0) { attempt++; reset(); }
+          return;
+        }
+        if (won) return;
+        x += SPEED * dt;
+        var prevH = h;
+        vy -= GRAV * dt;
+        h += vy * dt;
+        if (onGround && holding) { vy = JUMP; onGround = false; }
+
+        var left = x + 4, right = x + 36;     // player hitbox in world px (player drawn at x..x+40)
+        // floor
+        var floor = null;
+        var cx = (x + 20) / U;
+        var inPit = pits.some(function (q) { return cx > q.x + 0.1 && cx < q.x + q.w - 0.1; });
+        if (!inPit) floor = 0;
+        blocks.forEach(function (b) {
+          if (right > b.x * U + 1 && left < (b.x + b.w) * U - 1 && prevH >= b.h * U - 6) {
+            if (floor === null || b.h * U > floor) floor = b.h * U;
+          }
+        });
+        onGround = false;
+        if (floor !== null && h <= floor && vy <= 0) { h = floor; vy = 0; onGround = true; }
+        if (onGround && holding) { vy = JUMP; onGround = false; }
+
+        if (onGround) rot = Math.round(rot / 90) * 90;
+        else rot += 420 * dt;
+
+        // side hit on blocks
+        for (var i = 0; i < blocks.length; i++) {
+          var b = blocks[i];
+          if (right > b.x * U && left < (b.x + b.w) * U && h < b.h * U - 6) return die();
+        }
+        // spikes
+        for (var j = 0; j < spikes.length; j++) {
+          var sx = spikes[j] * U;
+          if (right > sx + 12 && left < sx + 28 && h < 22) return die();
+        }
+        if (h < -80) return die();
+        if (x > LEVEL_END * U) { won = true; }
+      }
+
+      function wx(worldX) { return PX + worldX - x; }
+
+      function draw() {
+        var g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, '#1b3bff'); g.addColorStop(1, '#0a1470');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, W, H);
+        // parallax squares
+        ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        for (var i = 0; i < 12; i++) {
+          var bx = ((i * 140 - x * 0.3) % (W + 140) + (W + 140)) % (W + 140) - 70;
+          ctx.fillRect(bx, 60 + (i % 3) * 60, 60, 60);
+        }
+        // ground (with pits)
+        ctx.fillStyle = '#0a0a3a';
+        var segs = [], px0 = -1000;
+        pits.slice().sort(function (a, b) { return a.x - b.x; }).forEach(function (q) {
+          segs.push([px0, q.x * U]); px0 = (q.x + q.w) * U;
+        });
+        segs.push([px0, LEVEL_END * U + 2000]);
+        segs.forEach(function (sg) {
+          var a = Math.max(wx(sg[0]), -10), b = Math.min(wx(sg[1]), W + 10);
+          if (b > a) {
+            ctx.fillStyle = '#0a0a3a'; ctx.fillRect(a, GROUND, b - a, H - GROUND);
+            ctx.fillStyle = '#fff'; ctx.fillRect(a, GROUND, b - a, 3);
+          }
+        });
+        // blocks
+        blocks.forEach(function (b) {
+          for (var k = 0; k < b.h; k++) for (var m = 0; m < b.w; m++) {
+            var bx = wx((b.x + m) * U), by = GROUND - (k + 1) * U;
+            if (bx > W || bx < -U) continue;
+            ctx.fillStyle = '#101a8a'; ctx.fillRect(bx, by, U, U);
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(bx + 1, by + 1, U - 2, U - 2);
+          }
+        });
+        // spikes
+        ctx.fillStyle = '#000'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+        spikes.forEach(function (sp) {
+          var bx = wx(sp * U);
+          if (bx > W || bx < -U) return;
+          ctx.beginPath();
+          ctx.moveTo(bx, GROUND); ctx.lineTo(bx + U / 2, GROUND - U); ctx.lineTo(bx + U, GROUND); ctx.closePath();
+          ctx.fill(); ctx.stroke();
+        });
+        // finish line
+        var fx = wx(LEVEL_END * U);
+        if (fx < W) { ctx.fillStyle = '#ffd500'; ctx.fillRect(fx, 0, 8, GROUND); }
+
+        // player
+        if (!dead) {
+          ctx.save();
+          ctx.translate(PX + 20, GROUND - h - 20);
+          ctx.rotate(rot * Math.PI / 180);
+          ctx.fillStyle = '#ffe14a'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+          ctx.fillRect(-20, -20, 40, 40); ctx.strokeRect(-20, -20, 40, 40);
+          ctx.fillStyle = '#000';
+          ctx.fillRect(-12, -10, 8, 8); ctx.fillRect(4, -10, 8, 8);
+          ctx.fillRect(-10, 6, 20, 5);
+          ctx.restore();
+        }
+        parts.forEach(function (q) {
+          if (q.life <= 0) return;
+          ctx.fillStyle = '#ffe14a';
+          ctx.fillRect(q.x, GROUND - q.h, 8, 8);
+        });
+
+        // HUD
+        var prog = Math.min(1, x / (LEVEL_END * U));
+        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(120, 14, 400, 12);
+        ctx.fillStyle = '#7dff7a'; ctx.fillRect(120, 14, 400 * prog, 12);
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(120, 14, 400, 12);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'left';
+        ctx.fillText('Attempt ' + attempt, 10, 24);
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.floor(prog * 100) + '%', W - 10, 24);
+        ctx.textAlign = 'center';
+        if (won) {
+          ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, 100, W, 140);
+          ctx.fillStyle = '#ffe14a'; ctx.font = 'bold 44px sans-serif';
+          ctx.fillText('LEVEL COMPLETE!', W / 2, 165);
+          ctx.fillStyle = '#fff'; ctx.font = '20px sans-serif';
+          ctx.fillText('Attempts: ' + attempt + '   (click or press Space to play again)', W / 2, 205);
+        }
+        ctx.textAlign = 'start';
+      }
+
+      function loop(ts) {
+        if (!modal.classList.contains('open')) return;
+        var dt = Math.min(0.05, (ts - last) / 1000 || 0);
+        last = ts;
+        acc += dt;
+        while (acc >= 1 / 120) { step(1 / 120); acc -= 1 / 120; }
+        draw();
+        raf = requestAnimationFrame(loop);
+      }
+      function open() {
+        attempt = 1; holding = false;
+        reset();
+        modal.classList.add('open');
+        cancelAnimationFrame(raf);
+        last = performance.now();
+        raf = requestAnimationFrame(loop);
+      }
+      function close() {
+        modal.classList.remove('open');
+        cancelAnimationFrame(raf);
+        holding = false;
+      }
+      function press() {
+        if (won) { attempt = 1; reset(); }
+        holding = true;
+      }
+      function release() { holding = false; }
+
+      document.getElementById('gd-btn').addEventListener('click', open);
+      document.getElementById('gd-close').addEventListener('click', close);
+      cv.addEventListener('pointerdown', function (e) { e.preventDefault(); press(); });
+      ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) { cv.addEventListener(ev, release); });
+      document.addEventListener('keydown', function (e) {
+        if (!modal.classList.contains('open')) return;
+        var k = e.key.toLowerCase();
+        if (k === 'escape') return close();
+        if (k === ' ' || k === 'arrowup' || k === 'w') { e.preventDefault(); press(); }
+      });
+      document.addEventListener('keyup', function (e) {
+        var k = e.key.toLowerCase();
+        if (k === ' ' || k === 'arrowup' || k === 'w') release();
+      });
     })();
   </script>
 </body>
