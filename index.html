@@ -1354,7 +1354,7 @@
     </div>
     <div id="mc-cursor"></div>
     <button id="mc-close">Close</button>
-    <div id="mc-hint">Keyboard and mouse. Click the game to start. WASD move, mouse look, Space jump (swim up), Ctrl or Shift sprint, F fly. HOLD left click to mine &ndash; it takes time and you need the right tool (pickaxe for stone and ores, axe for wood, shovel for dirt and sand). Right click places the held block, or opens a crafting table. E opens your inventory and crafting. Keys 1&ndash;9 or the wheel pick a hotbar slot. To reach the Nether: find obsidian deep underground (needs an iron pickaxe), build a 4 wide x 5 tall frame, craft Flint and Steel (iron ingot above coal) and right click the frame, then stand in the portal. Lava hurts! Start by punching a tree! Left click also attacks mobs; pigs and cows drop food (right click to eat). Zombies and creepers come out at night &ndash; craft a sword! Esc releases the mouse; Esc again closes. Your world is saved in this browser.</div>
+    <div id="mc-hint">Keyboard and mouse. Click the game to start. WASD move, mouse look, Space jump (swim up), Ctrl or Shift sprint, F fly. HOLD left click to mine &ndash; it takes time and you need the right tool (pickaxe for stone and ores, axe for wood, shovel for dirt and sand). Right click places the held block, or opens a crafting table. E opens your inventory and crafting. Keys 1&ndash;9 or the wheel pick a hotbar slot. To reach the Nether: mine diamonds deep underground with an iron pickaxe, craft a diamond pickaxe, mine obsidian, build a 4 wide x 5 tall frame, craft Flint and Steel (iron ingot above coal) and right click the frame, then stand in the portal. Lava hurts! Start by punching a tree! Left click also attacks mobs; pigs and cows drop food (right click to eat). Zombies and creepers come out at night &ndash; craft a sword! Esc releases the mouse; Esc again closes. Your world is saved in this browser.</div>
   </div>
 
   <script>
@@ -3298,11 +3298,11 @@
   <script>
     (function () {
       var CS = 16, WY = 64, SEA = 22, RD = 4, SAVE_KEY = 'mcSave2';
-      var B = { AIR: 0, GRASS: 1, DIRT: 2, STONE: 3, LOG: 4, PLANKS: 5, SAND: 6, LEAVES: 7, BEDROCK: 8, WATER: 9, COBBLE: 10, COAL_ORE: 11, IRON_ORE: 12, TABLE: 13, SNOW: 14, CACTUS: 15, ICE: 16, SPRUCE_LEAVES: 17, JUNGLE_LEAVES: 18, OBSIDIAN: 19, NETHERRACK: 20, LAVA: 21, GLOWSTONE: 22, SOUL_SAND: 23, PORTAL: 24 };
-      var STICK = 100, COAL = 101, INGOT = 102, PORK = 103, BEEF = 104, FLINT = 105;
+      var B = { AIR: 0, GRASS: 1, DIRT: 2, STONE: 3, LOG: 4, PLANKS: 5, SAND: 6, LEAVES: 7, BEDROCK: 8, WATER: 9, COBBLE: 10, COAL_ORE: 11, IRON_ORE: 12, TABLE: 13, SNOW: 14, CACTUS: 15, ICE: 16, SPRUCE_LEAVES: 17, JUNGLE_LEAVES: 18, OBSIDIAN: 19, NETHERRACK: 20, LAVA: 21, GLOWSTONE: 22, SOUL_SAND: 23, PORTAL: 24, DIAMOND_ORE: 25 };
+      var STICK = 100, COAL = 101, INGOT = 102, PORK = 103, BEEF = 104, FLINT = 105, DIAMOND = 106;
       var FOOD = {}; FOOD[PORK] = 3; FOOD[BEEF] = 3;
       // tile indices in the atlas
-      var T = { GRASS_TOP: 0, GRASS_SIDE: 1, DIRT: 2, STONE: 3, LOG_SIDE: 4, LOG_TOP: 5, PLANKS: 6, SAND: 7, LEAVES: 8, BEDROCK: 9, WATER: 10, COBBLE: 11, COAL: 12, IRON: 13, TABLE_TOP: 14, TABLE_SIDE: 15, SNOW: 16, SNOW_SIDE: 17, CACTUS_SIDE: 18, CACTUS_TOP: 19, SPRUCE_LEAVES: 20, ICE: 21, JUNGLE_LEAVES: 22, OBSIDIAN: 23, NETHERRACK: 24, LAVA: 25, GLOWSTONE: 26, SOUL_SAND: 27, PORTAL: 28 };
+      var T = { GRASS_TOP: 0, GRASS_SIDE: 1, DIRT: 2, STONE: 3, LOG_SIDE: 4, LOG_TOP: 5, PLANKS: 6, SAND: 7, LEAVES: 8, BEDROCK: 9, WATER: 10, COBBLE: 11, COAL: 12, IRON: 13, TABLE_TOP: 14, TABLE_SIDE: 15, SNOW: 16, SNOW_SIDE: 17, CACTUS_SIDE: 18, CACTUS_TOP: 19, SPRUCE_LEAVES: 20, ICE: 21, JUNGLE_LEAVES: 22, OBSIDIAN: 23, NETHERRACK: 24, LAVA: 25, GLOWSTONE: 26, SOUL_SAND: 27, PORTAL: 28, DIAMOND_ORE: 29 };
       function isLeaf(id) { return id === 7 || id === 17 || id === 18; }
       var BT = [];   // block -> [top, side, bottom]
       BT[B.GRASS] = [T.GRASS_TOP, T.GRASS_SIDE, T.DIRT];
@@ -3338,13 +3338,15 @@
       BI[B.COAL_ORE] = { name: 'Coal Ore', h: 3, tool: 'pick', min: 1, drop: COAL };
       BI[B.IRON_ORE] = { name: 'Iron Ore', h: 3, tool: 'pick', min: 2, drop: INGOT };
       BI[B.TABLE]    = { name: 'Crafting Table', h: 2.5, tool: 'axe', drop: B.TABLE };
+      BT[B.DIAMOND_ORE] = [T.DIAMOND_ORE, T.DIAMOND_ORE, T.DIAMOND_ORE];
+      BI[B.DIAMOND_ORE] = { name: 'Diamond Ore', h: 3, tool: 'pick', min: 3, drop: DIAMOND };
       BT[B.OBSIDIAN] = [T.OBSIDIAN, T.OBSIDIAN, T.OBSIDIAN];
       BT[B.NETHERRACK] = [T.NETHERRACK, T.NETHERRACK, T.NETHERRACK];
       BT[B.LAVA] = [T.LAVA, T.LAVA, T.LAVA];
       BT[B.GLOWSTONE] = [T.GLOWSTONE, T.GLOWSTONE, T.GLOWSTONE];
       BT[B.SOUL_SAND] = [T.SOUL_SAND, T.SOUL_SAND, T.SOUL_SAND];
       BT[B.PORTAL] = [T.PORTAL, T.PORTAL, T.PORTAL];
-      BI[B.OBSIDIAN]  = { name: 'Obsidian', h: 35, tool: 'pick', min: 3, drop: B.OBSIDIAN };
+      BI[B.OBSIDIAN]  = { name: 'Obsidian', h: 35, tool: 'pick', min: 4, drop: B.OBSIDIAN };
       BI[B.NETHERRACK] = { name: 'Netherrack', h: 0.4, tool: 'pick', drop: B.NETHERRACK };
       BI[B.LAVA]      = { name: 'Lava', h: -1 };
       BI[B.GLOWSTONE] = { name: 'Glowstone', h: 0.3, tool: null, drop: B.GLOWSTONE };
@@ -3355,9 +3357,9 @@
       BI[B.ICE]      = { name: 'Ice', h: 0.5, tool: null, drop: 0 };
       BI[B.SPRUCE_LEAVES] = { name: 'Spruce Leaves', h: 0.2, tool: null, drop: 0 };
       BI[B.JUNGLE_LEAVES] = { name: 'Jungle Leaves', h: 0.2, tool: null, drop: 0 };
-      var TIER_SPEED = [1, 2, 4, 6];
-      var TIER_NAME = ['', 'Wooden', 'Stone', 'Iron'], TIER_DUR = [0, 59, 131, 250];
-      var TIER_COL = [0, '#b8925a', '#8a8a8a', '#e8e8e8'];
+      var TIER_SPEED = [1, 2, 4, 6, 8];
+      var TIER_NAME = ['', 'Wooden', 'Stone', 'Iron', 'Diamond'], TIER_DUR = [0, 59, 131, 250, 1561];
+      var TIER_COL = [0, '#b8925a', '#8a8a8a', '#e8e8e8', '#4deeea'];
       var ITEMS = {};
       ITEMS[STICK] = { name: 'Stick' };
       ITEMS[COAL] = { name: 'Coal' };
@@ -3365,6 +3367,7 @@
       ITEMS[PORK] = { name: 'Raw Porkchop' };
       ITEMS[BEEF] = { name: 'Raw Beef' };
       ITEMS[FLINT] = { name: 'Flint and Steel' };
+      ITEMS[DIAMOND] = { name: 'Diamond' };
       var RECIPES = [];
       function trimPat(rows, key) {
         var cells = rows.map(function (r) { return r.split('').map(function (ch) { return ch === ' ' ? 0 : key[ch]; }); });
@@ -3383,7 +3386,7 @@
       addRecipe(['P', 'P'], { P: B.PLANKS }, [STICK, 4]);
       addRecipe(['PP', 'PP'], { P: B.PLANKS }, [B.TABLE, 1]);
       addRecipe(['I', 'C'], { I: INGOT, C: COAL }, [FLINT, 1]);
-      [[1, B.PLANKS, 110], [2, B.COBBLE, 120], [3, INGOT, 130]].forEach(function (m) {
+      [[1, B.PLANKS, 110], [2, B.COBBLE, 120], [3, INGOT, 130], [4, DIAMOND, 140]].forEach(function (m) {
         var tier = m[0], mat = m[1], base = m[2];
         ITEMS[base]     = { name: TIER_NAME[tier] + ' Pickaxe', tool: 'pick',   tier: tier, max: TIER_DUR[tier] };
         ITEMS[base + 1] = { name: TIER_NAME[tier] + ' Axe',     tool: 'axe',    tier: tier, max: TIER_DUR[tier] };
@@ -3487,6 +3490,7 @@
         tile(T.JUNGLE_LEAVES, [30, 160, 40], 28, function (ox, oy, r) {
           for (var k = 0; k < 40; k++) actx.clearRect(ox + Math.floor(r() * 16), oy + Math.floor(r() * 16), 1, 1);
         });
+        tile(T.DIAMOND_ORE, [125, 125, 125], 12, function (ox, oy, r) { blob(ox, oy, r, 'rgb(77,238,234)', 7); });
         tile(T.OBSIDIAN, [24, 14, 40], 8, function (ox, oy, r) { for (var k = 0; k < 18; k++) dot(ox, oy, Math.floor(r() * 16), Math.floor(r() * 16), 'rgb(' + (60 + Math.floor(r() * 30)) + ',30,' + (100 + Math.floor(r() * 40)) + ')'); });
         tile(T.NETHERRACK, [112, 40, 40], 18, function (ox, oy, r) { for (var k = 0; k < 14; k++) dot(ox, oy, Math.floor(r() * 16), Math.floor(r() * 16), 'rgb(78,24,26)'); });
         tile(T.LAVA, [236, 110, 20], 24, function (ox, oy, r) { for (var k = 0; k < 20; k++) dot(ox, oy, Math.floor(r() * 16), Math.floor(r() * 16), 'rgb(255,210,70)'); });
@@ -3511,6 +3515,9 @@
           if (id === B.SNOW) t = T.SNOW_SIDE;
           if (id === B.CACTUS) t = T.CACTUS_SIDE;
           x.drawImage(atlas, (t % 8) * 16, Math.floor(t / 8) * 16, 16, 16, 0, 0, 16, 16);
+        } else if (id === DIAMOND) {
+          px([[7, 3], [8, 3], [6, 4], [7, 4], [8, 4], [9, 4], [5, 5], [6, 5], [7, 5], [8, 5], [9, 5], [10, 5], [6, 6], [7, 6], [8, 6], [9, 6], [7, 7], [8, 7], [7, 8]], '#4deeea');
+          px([[7, 4], [8, 4], [6, 5], [7, 5]], '#c8fffd');
         } else if (id === FLINT) {
           for (var fi = 2; fi < 12; fi++) px([[fi, 13 - fi + 2], [fi + 1, 13 - fi + 2]], '#b8b8b8');
           px([[10, 3], [11, 3], [12, 3], [11, 4], [12, 4], [11, 2]], '#444');
@@ -3749,6 +3756,7 @@
               var o = hash3(wx, y, wz);
               if (y < 18 && vnoise3(wx / 3.5, y / 3.5, wz / 3.5, 9) > 0.92) id = B.OBSIDIAN;
               else if (y < 50 && o < 0.014) id = B.COAL_ORE;
+              else if (y < 16 && o > 0.9985) id = B.DIAMOND_ORE;
               else if (y < 34 && o > 0.994) id = B.IRON_ORE;
             }
             else if (y < h) id = (des || h <= SEA + 1) ? B.SAND : B.DIRT;
