@@ -4322,6 +4322,10 @@
           <option value="star">Stars</option>
           <option value="heart">Hearts</option>
           <option value="sparkle">Sparkles</option>
+          <option value="bubble">Bubbles</option>
+          <option value="diamond">Diamonds</option>
+          <option value="flower">Flowers</option>
+          <option value="bolt">Lightning</option>
           <option value="emoji">Emoji</option>
         </select>
       </label>
@@ -4401,6 +4405,33 @@
         ctx.closePath();
         ctx.fill();
       }
+      function drawBubble(r) {
+        ctx.globalAlpha *= 0.6;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, 6.2832); ctx.fill();
+        ctx.globalAlpha = Math.min(1, ctx.globalAlpha * 1.5);
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(-r * 0.35, -r * 0.35, r * 0.25, 0, 6.2832); ctx.fill();
+      }
+      function drawDiamond(r) {
+        ctx.beginPath();
+        ctx.moveTo(0, -r * 1.2); ctx.lineTo(r * 0.8, 0); ctx.lineTo(0, r * 1.2); ctx.lineTo(-r * 0.8, 0);
+        ctx.closePath(); ctx.fill();
+      }
+      function drawFlower(r) {
+        for (var i = 0; i < 5; i++) {
+          ctx.save(); ctx.rotate(i * 6.2832 / 5);
+          ctx.beginPath(); ctx.ellipse(0, -r * 0.6, r * 0.38, r * 0.6, 0, 0, 6.2832); ctx.fill();
+          ctx.restore();
+        }
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(0, 0, r * 0.3, 0, 6.2832); ctx.fill();
+      }
+      function drawBolt(r) {
+        ctx.beginPath();
+        ctx.moveTo(r * 0.3, -r * 1.2); ctx.lineTo(-r * 0.7, r * 0.1); ctx.lineTo(-r * 0.05, r * 0.1);
+        ctx.lineTo(-r * 0.3, r * 1.2); ctx.lineTo(r * 0.7, -r * 0.2); ctx.lineTo(r * 0.05, -r * 0.2);
+        ctx.closePath(); ctx.fill();
+      }
       function spawn(x, y) {
         parts.push({
           x: x + (Math.random() - 0.5) * 8, y: y + (Math.random() - 0.5) * 8,
@@ -4433,6 +4464,10 @@
             ctx.shadowBlur = 10;
             if (p.shape === 'star') drawStar(s, 5, 0.45);
             else if (p.shape === 'heart') drawHeart(s);
+            else if (p.shape === 'bubble') drawBubble(s);
+            else if (p.shape === 'diamond') drawDiamond(s);
+            else if (p.shape === 'flower') drawFlower(s);
+            else if (p.shape === 'bolt') drawBolt(s);
             else drawStar(s * 1.1, 4, 0.2);
           }
           ctx.restore();
