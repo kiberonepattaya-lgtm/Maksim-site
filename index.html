@@ -919,6 +919,103 @@
   }
   #trail-body input[type=color] { padding: 0; cursor: pointer; }
   #trail-body input[type=checkbox] { accent-color: var(--pink); width: 18px; height: 18px; }
+  #spooky-btn {
+    background-color: var(--teal);
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    padding: 14px 34px;
+    font-family: inherit;
+    font-size: 22px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin: 20px 6px 0;
+    box-shadow: 0 0 16px rgba(var(--teal-rgb), 0.7);
+  }
+  #spooky-btn:hover, #spooky-go:hover {
+    background-color: var(--pink);
+    box-shadow: 0 0 20px var(--pink);
+  }
+  #spooky-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2600;
+    background: rgba(5, 1, 13, 0.85);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  #spooky-modal.open { display: flex; }
+  #spooky-box {
+    position: relative;
+    width: min(92vw, 420px);
+    background: rgba(0, 0, 0, 0.92);
+    border: 3px solid var(--pink);
+    outline: 2px solid var(--teal);
+    outline-offset: 7px;
+    padding: 26px 28px;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 0 30px rgba(var(--pink-rgb), 0.5);
+  }
+  #spooky-box h2 {
+    margin: 0 0 14px;
+    font-size: 32px;
+    font-weight: 400;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px var(--pink);
+  }
+  #spooky-name {
+    width: 100%;
+    background: #1a0f33;
+    color: #fff;
+    border: 2px solid var(--teal);
+    font-family: inherit;
+    font-size: 24px;
+    letter-spacing: 2px;
+    padding: 8px 12px;
+    text-align: center;
+    outline: none;
+  }
+  #spooky-go {
+    animation: none;
+    margin-top: 14px;
+    background-color: var(--teal);
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    font-family: inherit;
+    font-size: 20px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  #spooky-result {
+    min-height: 1.3em;
+    margin-top: 18px;
+    font-size: 30px;
+    line-height: 1.2;
+    color: #fff;
+    text-shadow: 0 0 8px #fff, 0 0 20px var(--pink), 0 0 40px var(--pink);
+  }
+  #spooky-close {
+    animation: none;
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    background: transparent;
+    color: #fff;
+    border: 2px solid var(--pink);
+    width: 32px;
+    height: 32px;
+    font-family: inherit;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  #spooky-close:hover { background: var(--pink); }
   #fact-text {
     display: none;
     max-width: 640px;
@@ -1013,6 +1110,7 @@
       <button id="se-btn">STEAL AN EGG</button>
       <button id="mc-btn">MINECRAFT</button>
       <button id="fact-btn">Random Fact</button>
+      <button id="spooky-btn">Spooky Name</button>
       <p id="fact-text"></p>
       <div id="axolotl-result">
         <svg width="200" height="160" viewBox="0 0 200 160">
@@ -4312,6 +4410,15 @@
       window.addEventListener('resize', resize);
     })();
   </script>
+  <div id="spooky-modal">
+    <div id="spooky-box">
+      <button id="spooky-close" type="button" aria-label="Close">&times;</button>
+      <h2>What is your name?</h2>
+      <input id="spooky-name" type="text" maxlength="30" autocomplete="off" placeholder="Type here...">
+      <button id="spooky-go" type="button">Get my spooky name</button>
+      <div id="spooky-result"></div>
+    </div>
+  </div>
   <canvas id="trail-canvas"></canvas>
   <div id="trail-panel" class="open">
     <button id="trail-head" type="button">Trail &#9662;</button>
@@ -4521,6 +4628,31 @@
       });
       document.documentElement.addEventListener('mouseleave', function () { inside = false; });
       el.on.addEventListener('change', function () { if (!el.on.checked) parts = []; });
+    })();
+  </script>
+  <script>
+    (function () {
+      var titles = ["Count", "Countess", "Lord", "Lady", "Baron", "Baroness", "Sir", "Dr.", "Captain", "Professor", "Madame", "Duke", "Grim", "Witch", "Sir Spooky"];
+      var endings = ["the Moonlit", "the Haunted", "the Shadowy", "of the Graveyard", "the Pumpkin King", "the Midnight Howler", "the Cursed", "of the Crooked Manor", "the Bat Whisperer", "the Ghostly", "the Cauldron Stirrer", "of the Fog", "the Wicked", "the Creeping", "the Candy Thief"];
+      var special = ["the 67", "the Aura Farmer", "the Haunted Aura Farmer", "of 67 Moons", "the 67th Ghost", "the Spooky Aura Farmer", "the 67 Skeleton", "of the 67 Graves"];
+      var modal = document.getElementById('spooky-modal');
+      var input = document.getElementById('spooky-name');
+      var result = document.getElementById('spooky-result');
+      function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+      function open() { result.textContent = ''; modal.classList.add('open'); input.focus(); }
+      function close() { modal.classList.remove('open'); }
+      function generate() {
+        var name = input.value.trim();
+        if (!name) { result.textContent = 'Please type your name first!'; return; }
+        var ending = Math.random() < 0.5 ? pick(special) : pick(endings);
+        result.textContent = pick(titles) + ' ' + name + ' ' + ending;
+      }
+      document.getElementById('spooky-btn').addEventListener('click', open);
+      document.getElementById('spooky-close').addEventListener('click', close);
+      document.getElementById('spooky-go').addEventListener('click', generate);
+      input.addEventListener('keydown', function (e) { if (e.key === 'Enter') generate(); });
+      modal.addEventListener('mousedown', function (e) { if (e.target === modal) close(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal.classList.contains('open')) close(); });
     })();
   </script>
   <script>
