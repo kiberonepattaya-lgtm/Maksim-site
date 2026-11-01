@@ -4326,6 +4326,8 @@
           <option value="diamond">Diamonds</option>
           <option value="flower">Flowers</option>
           <option value="bolt">Lightning</option>
+          <option value="axolotl">Axolotls</option>
+          <option value="aura67">67 Aura</option>
           <option value="emoji">Emoji</option>
         </select>
       </label>
@@ -4432,6 +4434,39 @@
         ctx.lineTo(-r * 0.3, r * 1.2); ctx.lineTo(r * 0.7, -r * 0.2); ctx.lineTo(r * 0.05, -r * 0.2);
         ctx.closePath(); ctx.fill();
       }
+      function drawAxolotl(r, color) {
+        var k = r / 10;
+        ctx.scale(k, k);
+        ctx.fillStyle = color;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        for (var side = -1; side <= 1; side += 2) {
+          ctx.beginPath();
+          ctx.moveTo(side * 9, -8); ctx.lineTo(side * 16, -13);
+          ctx.moveTo(side * 9, -4); ctx.lineTo(side * 17, -4);
+          ctx.moveTo(side * 9, 0); ctx.lineTo(side * 16, 4);
+          ctx.stroke();
+        }
+        ctx.beginPath(); ctx.ellipse(0, 6, 8, 12, 0, 0, 6.2832); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, -4, 10, 0, 6.2832); ctx.fill();
+        ctx.fillStyle = '#05010d';
+        ctx.beginPath(); ctx.arc(-4, -6, 1.8, 0, 6.2832); ctx.arc(4, -6, 1.8, 0, 6.2832); ctx.fill();
+        ctx.strokeStyle = '#05010d'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(0, -3, 4, 0.2, Math.PI - 0.2); ctx.stroke();
+      }
+      function drawAura67(r, color) {
+        ctx.font = (r * 2.2) + 'px "Bebas Neue", Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 24;
+        ctx.fillStyle = color;
+        ctx.fillText('67', 0, 0);
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = '#fff';
+        ctx.fillText('67', 0, 0);
+      }
       function spawn(x, y) {
         parts.push({
           x: x + (Math.random() - 0.5) * 8, y: y + (Math.random() - 0.5) * 8,
@@ -4468,6 +4503,8 @@
             else if (p.shape === 'diamond') drawDiamond(s);
             else if (p.shape === 'flower') drawFlower(s);
             else if (p.shape === 'bolt') drawBolt(s);
+            else if (p.shape === 'axolotl') drawAxolotl(s, p.color);
+            else if (p.shape === 'aura67') drawAura67(s, p.color);
             else drawStar(s * 1.1, 4, 0.2);
           }
           ctx.restore();
