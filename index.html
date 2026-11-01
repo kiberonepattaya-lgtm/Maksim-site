@@ -3675,6 +3675,23 @@
         var a = hash2(ix, iz, s), b = hash2(ix + 1, iz, s), c = hash2(ix, iz + 1, s), d = hash2(ix + 1, iz + 1, s);
         return (a + (b - a) * fx) * (1 - fz) + (c + (d - c) * fx) * fz;
       }
+      function vnoise3(x, y, z, s) {
+        var ix = Math.floor(x), iy = Math.floor(y), iz = Math.floor(z), fx = x - ix, fy = y - iy, fz = z - iz;
+        fx = fx * fx * (3 - 2 * fx); fy = fy * fy * (3 - 2 * fy); fz = fz * fz * (3 - 2 * fz);
+        var ox = s * 1013, oy = s * 17, oz = -s * 733;
+        function h(a, b, c) { return hash3(ix + a + ox, iy + b + oy, iz + c + oz); }
+        var x00 = h(0, 0, 0) + (h(1, 0, 0) - h(0, 0, 0)) * fx, x10 = h(0, 1, 0) + (h(1, 1, 0) - h(0, 1, 0)) * fx;
+        var x01 = h(0, 0, 1) + (h(1, 0, 1) - h(0, 0, 1)) * fx, x11 = h(0, 1, 1) + (h(1, 1, 1) - h(0, 1, 1)) * fx;
+        var y0 = x00 + (x10 - x00) * fy, y1 = x01 + (x11 - x01) * fy;
+        return y0 + (y1 - y0) * fz;
+      }
+      // caves: winding "spaghetti" tunnels (two noise fields crossing) + rarer big caverns deep down
+      function isCave(x, y, z) {
+        var a = vnoise3(x / 20, y / 11, z / 20, 5) - 0.5, b = vnoise3(x / 20, y / 11, z / 20, 6) - 0.5;
+        if (a * a + b * b < 0.001) return true;
+        if (y < 36 && vnoise3(x / 34, y / 15, z / 34, 7) > 0.8) return true;
+        return false;
+      }
       function fbm(x, z, s) { return (vnoise(x, z, s) + 0.5 * vnoise(x * 2, z * 2, s + 1) + 0.25 * vnoise(x * 4, z * 4, s + 2)) / 1.75; }
       function heightAt(x, z) {
         var cont = fbm(x / 90, z / 90, 11), hills = fbm(x / 28, z / 28, 21);
@@ -3710,6 +3727,8 @@
             }
             else if (y < h) id = (des || h <= SEA + 1) ? B.SAND : B.DIRT;
             else id = (des || h <= SEA + 1) ? B.SAND : (h > 54 ? B.SNOW : h > 50 ? B.STONE : (bio === 'snowy' ? B.SNOW : B.GRASS));
+            if (y >= 5 && y < h - 3 && isCave(wx, y, wz)) id = 0;
+            else if (y >= h - 3 && y <= h && h > SEA + 2 && vnoise(wx / 26, wz / 26, 77) > 0.72 && isCave(wx, y, wz)) id = 0;
             data[cidx(lx, y, lz)] = id;
             if (y > top) top = y;
           }
@@ -3737,6 +3756,7 @@
                    : tb === 'jungle' ? 0.05 + 0.03 * fbm(tx / 60, tz / 60, 51)
                    : 0.004;
           if (rr >= dens) continue;
+          setB(tx, th, tz, B.DIRT, true);   // never leave a tree floating over a cave opening
           if (tb === 'taiga' || tb === 'snowy') {
             var sk = 5 + Math.floor(rr2 * 3);
             for (ty = 1; ty <= sk; ty++) setB(tx, th + ty, tz, B.LOG, false);
