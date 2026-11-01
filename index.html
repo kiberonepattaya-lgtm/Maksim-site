@@ -1354,7 +1354,7 @@
     </div>
     <div id="mc-cursor"></div>
     <button id="mc-close">Close</button>
-    <div id="mc-hint">Keyboard and mouse. Click the game to start. WASD move, mouse look, Space jump (swim up), Shift sprint, F fly. HOLD left click to mine &ndash; it takes time and you need the right tool (pickaxe for stone and ores, axe for wood, shovel for dirt and sand). Right click places the held block, or opens a crafting table. E opens your inventory and crafting. Keys 1&ndash;9 or the wheel pick a hotbar slot. Start by punching a tree! Left click also attacks mobs; pigs and cows drop food (right click to eat). Zombies and creepers come out at night &ndash; craft a sword! Esc releases the mouse; Esc again closes. Your world is saved in this browser.</div>
+    <div id="mc-hint">Keyboard and mouse. Click the game to start. WASD move, mouse look, Space jump (swim up), Ctrl or Shift sprint, F fly. HOLD left click to mine &ndash; it takes time and you need the right tool (pickaxe for stone and ores, axe for wood, shovel for dirt and sand). Right click places the held block, or opens a crafting table. E opens your inventory and crafting. Keys 1&ndash;9 or the wheel pick a hotbar slot. Start by punching a tree! Left click also attacks mobs; pigs and cows drop food (right click to eat). Zombies and creepers come out at night &ndash; craft a sword! Esc releases the mouse; Esc again closes. Your world is saved in this browser.</div>
   </div>
 
   <script>
@@ -3932,7 +3932,7 @@
         var fwd = (keys.w ? 1 : 0) - (keys.s ? 1 : 0), strafe = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
         P.inWater = get(Math.floor(P.x), Math.floor(P.y + 0.5), Math.floor(P.z)) === B.WATER;
         if (P.ground || P.inWater || P.fly) fallStart = P.y; else if (P.y > fallStart) fallStart = P.y;
-        var sp = (keys.shift ? 6.5 : 4.3) * (P.fly ? 2 : 1) * (P.inWater && !P.fly ? 0.55 : 1);
+        var sp = ((keys.shift || (keys.ctrl && fwd > 0)) ? 6.5 : 4.3) * (P.fly ? 2 : 1) * (P.inWater && !P.fly ? 0.55 : 1);
         var sy = Math.sin(P.yaw), cy = Math.cos(P.yaw);
         var wx = -sy * fwd + cy * strafe, wz = -cy * fwd - sy * strafe, l = Math.hypot(wx, wz) || 1, mv = (fwd || strafe) ? 1 : 0;
         P.vx = wx / l * sp * mv + P.kx; P.vz = wz / l * sp * mv + P.kz;
@@ -4474,6 +4474,7 @@
         if (!locked || uiOpen) return;
         if (k === ' ') { e.preventDefault(); keys.space = true; }
         else if (k === 'shift') keys.shift = true;
+        else if (k === 'control') keys.ctrl = true;
         else if (k === 'f') { P.fly = !P.fly; P.vy = 0; }
         else if (k >= '1' && k <= '9') { sel = +k - 1; renderHotbar(); }
         else if (k === 'w' || k === 'a' || k === 's' || k === 'd') keys[k] = true;
@@ -4482,8 +4483,10 @@
         var k = e.key.toLowerCase();
         if (k === ' ') keys.space = false;
         else if (k === 'shift') keys.shift = false;
+        else if (k === 'control') keys.ctrl = false;
         else if (k === 'w' || k === 'a' || k === 's' || k === 'd') keys[k] = false;
       });
+      window.addEventListener('blur', function () { keys.ctrl = false; });
       uiEl.addEventListener('contextmenu', function (e) { e.preventDefault(); });
       document.getElementById('mc-close').addEventListener('click', close);
       document.getElementById('mc-btn').addEventListener('click', start);
