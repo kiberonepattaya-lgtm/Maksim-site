@@ -836,6 +836,38 @@
     font-family: inherit; font-size: 18px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
   }
   #mc-hint { font-size: 13px; opacity: 0.7; max-width: 960px; }
+  #fact-btn {
+    background-color: var(--teal);
+    color: #fff;
+    border: none;
+    border-radius: 0;
+    padding: 14px 34px;
+    font-family: inherit;
+    font-size: 22px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin: 20px 6px 0;
+    box-shadow: 0 0 16px rgba(var(--teal-rgb), 0.7);
+  }
+  #fact-btn:hover {
+    background-color: var(--pink);
+    box-shadow: 0 0 20px var(--pink);
+  }
+  #fact-text {
+    display: none;
+    max-width: 640px;
+    margin: 20px auto 0;
+    padding: 14px 24px;
+    background: rgba(0, 0, 0, 0.88);
+    border: 3px solid var(--teal);
+    outline: 2px solid var(--pink);
+    outline-offset: 6px;
+    color: #fff;
+    font-size: 24px;
+    line-height: 1.4;
+    text-shadow: 0 0 8px var(--teal);
+  }
 </style>
 </head>
 <body>
@@ -915,6 +947,8 @@
       <button id="gg-btn">GROW A GARDEN</button>
       <button id="se-btn">STEAL AN EGG</button>
       <button id="mc-btn">MINECRAFT</button>
+      <button id="fact-btn">Random Fact</button>
+      <p id="fact-text"></p>
       <div id="axolotl-result">
         <svg width="200" height="160" viewBox="0 0 200 160">
           <ellipse cx="100" cy="100" rx="70" ry="45" fill="#f7a8c4" stroke="black" stroke-width="3"/>
@@ -4211,6 +4245,46 @@
       document.getElementById('mc-close').addEventListener('click', close);
       document.getElementById('mc-btn').addEventListener('click', start);
       window.addEventListener('resize', resize);
+    })();
+  </script>
+  <script>
+    (function () {
+      var facts = [
+        "Axolotls can regrow lost limbs, parts of their heart, and even parts of their brain.",
+        "Octopuses have three hearts and blue blood.",
+        "A day on Venus is longer than a year on Venus.",
+        "Honey never spoils - edible honey has been found in ancient Egyptian tombs.",
+        "Sharks existed before trees; they are over 400 million years old.",
+        "Neutron stars are so dense that a teaspoon of one would weigh about a billion tons.",
+        "The Great Barrier Reef is the largest living structure on Earth and can be seen from space.",
+        "Wombats produce cube-shaped droppings.",
+        "Saturn is less dense than water, so it would float in a big enough bathtub.",
+        "The Eiffel Tower grows about 15 cm taller in summer because heat expands its iron.",
+        "Axolotls are named after an Aztec god, and they stay in their larval form their whole life.",
+        "Dolphins sleep with one half of their brain at a time.",
+        "Light from the Sun takes about 8 minutes and 20 seconds to reach Earth.",
+        "The ancient Romans used crushed seashells and volcanic ash to make long-lasting concrete.",
+        "A group of flamingos is called a flamboyance.",
+        "Lightning is about five times hotter than the surface of the Sun.",
+        "The deepest point in the ocean, the Challenger Deep, is nearly 11 km down.",
+        "Bananas are slightly radioactive because they contain potassium-40.",
+        "Cleopatra lived closer in time to the Moon landing than to the building of the Great Pyramid.",
+        "Sea otters hold hands while sleeping so they don't drift apart.",
+        "There are more stars in the universe than grains of sand on all of Earth's beaches.",
+        "Axolotls can live happily in cold water and breathe through both gills and skin.",
+        "Water can boil and freeze at the same time at a special point called the triple point.",
+        "A blue whale's heart is about the size of a small car."
+      ];
+      var btn = document.getElementById('fact-btn');
+      var out = document.getElementById('fact-text');
+      var last = -1;
+      btn.addEventListener('click', function () {
+        var i;
+        do { i = Math.floor(Math.random() * facts.length); } while (i === last);
+        last = i;
+        out.textContent = facts[i];
+        out.style.display = 'block';
+      });
     })();
   </script>
   <footer class="site-footer" style="width:100%; margin-top:0; padding:40px 20px; font-size:44px; letter-spacing:4px; box-shadow:0 -6px 30px rgba(var(--pink-rgb), 0.35);">
